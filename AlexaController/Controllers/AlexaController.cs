@@ -8,22 +8,72 @@ namespace AlexaController.Controllers
     public class AlexaController : ControllerBase
     {
 
-        //ApagarEquipo
+        private readonly ILogger<AlexaController> _logger;
 
-        //ReiniciarEquipo
+        public AlexaController(ILogger<AlexaController> logger)
+        {
+            _logger = logger;
+        }
 
-        //IniciarSteam
 
-        //CerrarSteam
 
-        //ReiniciarSteam
+        [HttpGet]
+        public async Task ApagarEquipo()
+        {
+            throw new NotImplementedException(); 
+        }
 
-        //IniciarModoJuegos
+        [HttpGet]
+        public async Task ReiniciarEquipo()
+        {
+            throw new NotImplementedException();
+        }
 
-        //DetenerModoJuegos
 
-        //CerrarRetroArch
+        [HttpGet]
+        public async Task IniciarSteam()
+        {
+            throw new NotImplementedException();
+        }
+
+        [HttpGet]
+        public async Task CerrarSteam()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        [HttpGet]
+        public async Task ReiniciarSteam()
+        {
+            throw new NotImplementedException();
+        }
+
+        [HttpGet]
+        public async Task CerrarRetroArch()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        [HttpGet]
+        public async Task IniciarModoJuegos()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        [HttpGet]
+        public async Task DetenerModoJuegos()
+        {
+            throw new NotImplementedException();
+        }
+
+
+
+
 
 
     }
 }
+
