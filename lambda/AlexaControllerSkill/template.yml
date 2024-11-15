@@ -9,7 +9,7 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: An AWS Serverless Application Model template describing your function.
 Resources:
-  AlexaMessageSkill:
+  AlexaController:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ./src
@@ -38,7 +38,7 @@ Resources:
                 - logs:PutLogEvents
               Resource:
                 - >-
-                  arn:aws:logs:us-east-2:160885252557:log-group:/aws/lambda/AlexaMessageSkill:*
+                  arn:aws:logs:us-east-2:160885252557:log-group:/aws/lambda/AlexaController:*
       RecursiveLoop: Terminate
       SnapStart:
         ApplyOn: None
