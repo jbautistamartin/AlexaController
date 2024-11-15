@@ -128,14 +128,47 @@ namespace AlexaController.Controllers
         [HttpGet]
         public async Task IniciarModoJuegos()
         {
+
             await Task.Run(() =>
             {
-            try
+                try
+                {
+                    _logger.LogInformation("Iniciando Modo Juegos...");
+                    JuegosHelper.IniciarModoJuegos();
+                    _logger.LogInformation("Inicio de Modo Juegos finalizado.");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error al Iniciar Modo Juego.");
+                }
+
+
+            });
+        }
+
+        [HttpGet]
+        public async Task DetenerModoJuegos()
+        {
+
+            await Task.Run(() =>
             {
-                _logger.LogInformation("Iniciando Modo Juegos...");
-                JuegosHelper.IniciarModoJuegos();
-                _logger.LogInformation("Inicio de Modo Juegos finalizado.");
-            }
-            catch (Exception ex)
+                try
+                {
+                    _logger.LogInformation("Deteniendo Modo Juegos...");
+                    JuegosHelper.DetenerModoJuegos();
+                    _logger.LogInformation("Detención de Modo Juegos finalizado.");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error al Detener Modo Juego.");
+                }
 
 
+            });
+
+
+        }
+
+
+    }
+}
