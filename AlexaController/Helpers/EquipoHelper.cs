@@ -3,9 +3,8 @@ using System.Diagnostics;
 
 namespace AlexaController.Helpers
 {
-    static class EquipoHelper
+    internal static class EquipoHelper
     {
-     
         public static void ApagarEquipo()
         {
             Process.Start("shutdown", "/s /t 0");

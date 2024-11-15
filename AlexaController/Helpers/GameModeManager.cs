@@ -1,9 +1,9 @@
 ﻿namespace AlexaController.Helpers
 {
-    using System;
     using Microsoft.Win32;
+    using System;
 
-    class GameModeManager
+    internal class GameModeManager
     {
         private const string GameBarRegistryPath = @"Software\Microsoft\GameBar";
         private const string GameModeKeyName = "AllowAutoGameMode";
@@ -57,7 +57,4 @@
             }
         }
     }
-
-
-
 }

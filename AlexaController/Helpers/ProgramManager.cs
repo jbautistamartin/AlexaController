@@ -4,7 +4,7 @@
     using System.Collections.Generic;
     using System.Diagnostics;
 
-    class ProgramManager
+    internal class ProgramManager
     {
         // Lista de procesos a detener con comentarios sobre cada uno
         private static readonly List<string> Processes = new()
@@ -71,7 +71,4 @@
             StoppedProcesses.Clear(); // Limpiar la lista de procesos detenidos
         }
     }
-
- 
-
 }

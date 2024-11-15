@@ -1,7 +1,6 @@
-﻿
-namespace AlexaController.Helpers
+﻿namespace AlexaController.Helpers
 {
-    static class JuegosHelper
+    internal static class JuegosHelper
     {
         internal static void DetenerModoJuegos()
         {

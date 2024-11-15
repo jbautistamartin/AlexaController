@@ -2,23 +2,17 @@
 
 namespace AlexaController.Helpers
 {
-    static class ProcesosHelper
+    internal static class ProcesosHelper
     {
-
-
         public static void CerrarRetroArch()
         {
-     
-                foreach (var process in Process.GetProcessesByName("retroarch"))
-                {
-                    KillProcessAndChildren(process.Id);
-                }
-        
+            foreach (var process in Process.GetProcessesByName("retroarch"))
+            {
+                KillProcessAndChildren(process.Id);
+            }
         }
 
-
-
-        public static  void KillProcessAndChildren(int pid)
+        public static void KillProcessAndChildren(int pid)
         {
             var process = Process.GetProcessById(pid);
             if (process == null) return;

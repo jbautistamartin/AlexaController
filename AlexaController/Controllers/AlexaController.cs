@@ -1,13 +1,12 @@
 ﻿using AlexaController.Helpers;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 
 namespace AlexaController.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
+    [Authorize] // Esto asegura que el endpoint está protegido por Basic Auth
     public class AlexaController : ControllerBase
     {
         private readonly ILogger<AlexaController> _logger;
@@ -128,7 +127,6 @@ namespace AlexaController.Controllers
         [HttpGet]
         public async Task IniciarModoJuegos()
         {
-
             await Task.Run(() =>
             {
                 try
@@ -141,15 +139,12 @@ namespace AlexaController.Controllers
                 {
                     _logger.LogError(ex, "Error al Iniciar Modo Juego.");
                 }
-
-
             });
         }
 
         [HttpGet]
         public async Task DetenerModoJuegos()
         {
-
             await Task.Run(() =>
             {
                 try
@@ -162,13 +157,7 @@ namespace AlexaController.Controllers
                 {
                     _logger.LogError(ex, "Error al Detener Modo Juego.");
                 }
-
-
             });
-
-
         }
-
-
     }
 }

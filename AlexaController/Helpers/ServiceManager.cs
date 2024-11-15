@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ServiceProcess;
+﻿using System.ServiceProcess;
 
 namespace AlexaController.Helpers
 {
- 
-    class ServiceManager
+    internal class ServiceManager
     {
         // Lista de servicios a gestionar con comentarios explicativos
         private static readonly List<string> Services = new()
@@ -119,5 +116,4 @@ namespace AlexaController.Helpers
             DisabledServices.Clear(); // Limpiar la lista de servicios desactivados
         }
     }
-
 }

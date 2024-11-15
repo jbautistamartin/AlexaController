@@ -3,7 +3,7 @@
     using System;
     using System.Runtime.InteropServices;
 
-    class MonitorConfiguration
+    internal class MonitorConfiguration
     {
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         private static extern bool EnumDisplayDevices(string lpDevice, uint iDevNum, ref DISPLAY_DEVICE lpDisplayDevice, uint dwFlags);
@@ -23,13 +23,18 @@
         private struct DISPLAY_DEVICE
         {
             public int cb;
+
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
             public string DeviceName;
+
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
             public string DeviceString;
+
             public int StateFlags;
+
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
             public string DeviceID;
+
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
             public string DeviceKey;
         }
@@ -39,6 +44,7 @@
         {
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
             public string dmDeviceName;
+
             public short dmSpecVersion;
             public short dmDriverVersion;
             public short dmSize;
@@ -53,8 +59,10 @@
             public short dmYResolution;
             public short dmTTOption;
             public short dmCollate;
+
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
             public string dmFormName;
+
             public short dmLogPixels;
             public int dmBitsPerPel;
             public int dmPelsWidth;
@@ -155,7 +163,4 @@
             }
         }
     }
-
-    
-
 }
