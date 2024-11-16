@@ -3,15 +3,22 @@ using System.Diagnostics;
 
 namespace AlexaController.Helpers
 {
-    internal static class EquipoHelper
+    public class EquipoHelper
     {
-        public static void ApagarEquipo()
+        private readonly ILogger<EquipoHelper> _logger;
+
+        public EquipoHelper(ILogger<EquipoHelper> logger)
+        {
+            _logger = logger;
+        }
+
+        public void ApagarEquipo()
         {
             Process.Start("shutdown", "/s /t 0");
         }
 
         [HttpGet]
-        public static void ReiniciarEquipo()
+        public void ReiniciarEquipo()
         {
             Process.Start("shutdown", "/r /t 0");
         }

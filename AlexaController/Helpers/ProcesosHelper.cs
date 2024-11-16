@@ -2,9 +2,16 @@
 
 namespace AlexaController.Helpers
 {
-    internal static class ProcesosHelper
+    public class ProcesosHelper
     {
-        public static void CerrarRetroArch()
+        private readonly ILogger<ProcesosHelper> _logger;
+
+        public ProcesosHelper(ILogger<ProcesosHelper> logger)
+        {
+            _logger = logger;
+        }
+
+        public void CerrarRetroArch()
         {
             foreach (var process in Process.GetProcessesByName("retroarch"))
             {
@@ -12,7 +19,7 @@ namespace AlexaController.Helpers
             }
         }
 
-        public static void KillProcessAndChildren(int pid)
+        public void KillProcessAndChildren(int pid)
         {
             var process = Process.GetProcessById(pid);
             if (process == null) return;
@@ -26,12 +33,11 @@ namespace AlexaController.Helpers
             process.WaitForExit(); // Asegura que el proceso finalice antes de continuar
         }
 
-        private static int GetParentProcessId(Process process)
+        private int GetParentProcessId(Process process)
         {
             try
             {
-                using (var mo = new System.Management.ManagementObject(
-                    $"win32_process.handle='{process.Id}'"))
+                using (var mo = new System.Management.ManagementObject($"win32_process.handle='{process.Id}'"))
                 {
                     mo.Get();
                     return Convert.ToInt32(mo["ParentProcessId"]);

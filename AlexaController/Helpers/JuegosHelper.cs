@@ -1,15 +1,34 @@
-﻿namespace AlexaController.Helpers
+﻿using AlexaController.Gestores;
+
+namespace AlexaController.Helpers
 {
-    internal static class JuegosHelper
+    public class JuegosHelper
     {
-        internal static void DetenerModoJuegos()
+        private readonly ILogger<JuegosHelper> _logger;
+        private readonly MonitorManager _monitorManager;
+        private readonly ProgramManager _programManager;
+        private readonly ServiceManager _serviceManager;
+
+        public JuegosHelper(ILogger<JuegosHelper> logger, MonitorManager monitorManager, ProgramManager programManager, ServiceManager serviceManager)
         {
-            throw new NotImplementedException();
+            _logger = logger;
+            _monitorManager = monitorManager;
+            _programManager = programManager;
+            _serviceManager = serviceManager;
         }
 
-        internal static void IniciarModoJuegos()
+        internal void DetenerModoJuegos()
         {
-            throw new NotImplementedException();
+            _serviceManager.EnableServices();
+            _programManager.RestartPrograms();
+            _monitorManager.ConfigureDualMonitors();
+        }
+
+        internal void IniciarModoJuegos()
+        {
+            _monitorManager.ConfigureSingleMonitor();
+            _programManager.StopPrograms();
+            _serviceManager.DisableServices();
         }
     }
 }

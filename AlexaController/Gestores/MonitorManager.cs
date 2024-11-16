@@ -1,10 +1,16 @@
-﻿namespace AlexaController.Helpers
-{
-    using System;
-    using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
-    internal class MonitorConfiguration
+namespace AlexaController.Gestores
+{
+    public class MonitorManager
     {
+        private readonly ILogger<MonitorManager> _logger;
+
+        public MonitorManager(ILogger<MonitorManager> logger)
+        {
+            _logger = logger;
+        }
+
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         private static extern bool EnumDisplayDevices(string lpDevice, uint iDevNum, ref DISPLAY_DEVICE lpDisplayDevice, uint dwFlags);
 
@@ -79,9 +85,9 @@
             public int dmPanningHeight;
         }
 
-        public static void ConfigureSingleMonitor()
+        public void ConfigureSingleMonitor()
         {
-            Console.WriteLine("Configurando para usar un solo monitor...");
+            _logger.LogInformation("Configurando para usar un solo monitor...");
             try
             {
                 var displayDevice = new DISPLAY_DEVICE();
@@ -101,24 +107,24 @@
 
                         if (result == DISP_CHANGE_SUCCESSFUL)
                         {
-                            Console.WriteLine("Configuración actualizada a un solo monitor.");
+                            _logger.LogInformation("Configuración actualizada a un solo monitor.");
                         }
                         else
                         {
-                            Console.WriteLine($"Error al configurar el monitor. Código: {result}");
+                            _logger.LogError($"Error al configurar el monitor. Código: {result}");
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex.Message}");
+                _logger.LogError(ex, $"Error: {ex.Message}");
             }
         }
 
-        public static void ConfigureDualMonitors()
+        public void ConfigureDualMonitors()
         {
-            Console.WriteLine("Configurando para usar dos monitores...");
+            _logger.LogInformation("Configurando para usar dos monitores...");
             try
             {
                 var primaryDevice = new DISPLAY_DEVICE();
@@ -148,18 +154,18 @@
 
                         if (resultPrimary == DISP_CHANGE_SUCCESSFUL && resultSecondary == DISP_CHANGE_SUCCESSFUL)
                         {
-                            Console.WriteLine("Configuración actualizada a dos monitores.");
+                            _logger.LogInformation("Configuración actualizada a dos monitores.");
                         }
                         else
                         {
-                            Console.WriteLine($"Error al configurar los monitores. Códigos: Primario: {resultPrimary}, Secundario: {resultSecondary}");
+                            _logger.LogError($"Error al configurar los monitores. Códigos: Primario: {resultPrimary}, Secundario: {resultSecondary}");
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex.Message}");
+                _logger.LogError($"Error: {ex.Message}");
             }
         }
     }

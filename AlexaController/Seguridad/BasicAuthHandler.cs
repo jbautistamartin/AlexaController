@@ -20,11 +20,17 @@ namespace AlexaController.Seguridad
                                  ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock)
             : base(authenticationOptions, logger, encoder, clock)
         {
-            _options = options;
+            _options = options ?? throw new ArgumentNullException(nameof(options)); // Asegúrate de que no sea nulo
         }
 
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()
         {
+            // Verifica si _options.Value es nulo (lo cual no debería serlo después de la configuración)
+            if (_options.Value == null)
+            {
+                return Task.FromResult(AuthenticateResult.Fail("Configuration missing for BasicAuth"));
+            }
+
             var authorizationHeader = Request.Headers["Authorization"].FirstOrDefault();
 
             if (authorizationHeader == null || !authorizationHeader.StartsWith("Basic ", StringComparison.OrdinalIgnoreCase))

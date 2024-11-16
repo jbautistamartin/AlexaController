@@ -10,13 +10,21 @@ namespace AlexaController.Controllers
     public class AlexaController : ControllerBase
     {
         private readonly ILogger<AlexaController> _logger;
+        private readonly EquipoHelper _equipoHelper;
+        private readonly JuegosHelper _juegosHelper;
+        private readonly ProcesosHelper _procesosHelper;
+        private readonly SteamHelper _steamHelper;
 
-        public AlexaController(ILogger<AlexaController> logger)
+        public AlexaController(ILogger<AlexaController> logger, EquipoHelper equipoHelper, JuegosHelper juegosHelper, ProcesosHelper procesosHelper, SteamHelper steamHelper)
         {
             _logger = logger;
+            this._equipoHelper = equipoHelper;
+            this._juegosHelper = juegosHelper;
+            this._procesosHelper = procesosHelper;
+            this._steamHelper = steamHelper;
         }
 
-        [HttpGet]
+        [HttpGet(nameof(ApagarEquipo))]
         public async Task ApagarEquipo()
         {
             await Task.Run(() =>
@@ -24,7 +32,7 @@ namespace AlexaController.Controllers
                 try
                 {
                     _logger.LogInformation("Apagando equipo...");
-                    EquipoHelper.ApagarEquipo();
+                    _equipoHelper.ApagarEquipo();
                     _logger.LogInformation("Apagado de equipo finalizado.");
                 }
                 catch (Exception ex)
@@ -34,7 +42,7 @@ namespace AlexaController.Controllers
             });
         }
 
-        [HttpGet]
+        [HttpGet(nameof(ReiniciarEquipo))]
         public async Task ReiniciarEquipo()
         {
             await Task.Run(() =>
@@ -42,7 +50,7 @@ namespace AlexaController.Controllers
                 try
                 {
                     _logger.LogInformation("Reiniciando equipo...");
-                    EquipoHelper.ReiniciarEquipo();
+                    _equipoHelper.ReiniciarEquipo();
                     _logger.LogInformation("Reinicio de equipo finalizado.");
                 }
                 catch (Exception ex)
@@ -52,7 +60,7 @@ namespace AlexaController.Controllers
             });
         }
 
-        [HttpGet]
+        [HttpGet(nameof(IniciarSteam))]
         public async Task IniciarSteam()
         {
             await Task.Run(() =>
@@ -60,7 +68,7 @@ namespace AlexaController.Controllers
                 try
                 {
                     _logger.LogInformation("Iniciando Steam...");
-                    SteamHelper.IniciarSteam();
+                    _steamHelper.IniciarSteam();
                     _logger.LogInformation("Inicio de Steam finalizado.");
                 }
                 catch (Exception ex)
@@ -70,7 +78,7 @@ namespace AlexaController.Controllers
             });
         }
 
-        [HttpGet]
+        [HttpGet(nameof(CerrarSteam))]
         public async Task CerrarSteam()
         {
             await Task.Run(() =>
@@ -78,7 +86,7 @@ namespace AlexaController.Controllers
                 try
                 {
                     _logger.LogInformation("Cerrando Steam...");
-                    SteamHelper.CerrarSteam();
+                    _steamHelper.CerrarSteam();
                     _logger.LogInformation("Cierre de Steam finalizado.");
                 }
                 catch (Exception ex)
@@ -88,7 +96,7 @@ namespace AlexaController.Controllers
             });
         }
 
-        [HttpGet]
+        [HttpGet(nameof(ReiniciarSteam))]
         public async Task ReiniciarSteam()
         {
             await Task.Run(() =>
@@ -96,7 +104,7 @@ namespace AlexaController.Controllers
                 try
                 {
                     _logger.LogInformation("Reiniciando Steam...");
-                    SteamHelper.ReiniciarSteam();
+                    _steamHelper.ReiniciarSteam();
                     _logger.LogInformation("Reinicio de Steam finalizado.");
                 }
                 catch (Exception ex)
@@ -106,7 +114,7 @@ namespace AlexaController.Controllers
             });
         }
 
-        [HttpGet]
+        [HttpGet(nameof(CerrarRetroArch))]
         public async Task CerrarRetroArch()
         {
             await Task.Run(() =>
@@ -114,7 +122,7 @@ namespace AlexaController.Controllers
                 try
                 {
                     _logger.LogInformation("Cerrando RetroArch...");
-                    ProcesosHelper.CerrarRetroArch();
+                    _procesosHelper.CerrarRetroArch();
                     _logger.LogInformation("Cierre de RetroArch finalizado.");
                 }
                 catch (Exception ex)
@@ -124,7 +132,7 @@ namespace AlexaController.Controllers
             });
         }
 
-        [HttpGet]
+        [HttpGet(nameof(IniciarModoJuegos))]
         public async Task IniciarModoJuegos()
         {
             await Task.Run(() =>
@@ -132,7 +140,7 @@ namespace AlexaController.Controllers
                 try
                 {
                     _logger.LogInformation("Iniciando Modo Juegos...");
-                    JuegosHelper.IniciarModoJuegos();
+                    _juegosHelper.IniciarModoJuegos();
                     _logger.LogInformation("Inicio de Modo Juegos finalizado.");
                 }
                 catch (Exception ex)
@@ -142,7 +150,7 @@ namespace AlexaController.Controllers
             });
         }
 
-        [HttpGet]
+        [HttpGet(nameof(DetenerModoJuegos))]
         public async Task DetenerModoJuegos()
         {
             await Task.Run(() =>
@@ -150,7 +158,7 @@ namespace AlexaController.Controllers
                 try
                 {
                     _logger.LogInformation("Deteniendo Modo Juegos...");
-                    JuegosHelper.DetenerModoJuegos();
+                    _juegosHelper.DetenerModoJuegos();
                     _logger.LogInformation("Detención de Modo Juegos finalizado.");
                 }
                 catch (Exception ex)

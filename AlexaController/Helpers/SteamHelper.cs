@@ -2,26 +2,39 @@
 
 namespace AlexaController.Helpers
 {
-    internal static class SteamHelper
+    public class SteamHelper
     {
-        public static void IniciarSteam()
+        private readonly ILogger<SteamHelper> _logger;
+        private readonly ProcesosHelper _procesosHelper;
+        private readonly JuegosHelper _juegosHelper;
+
+        public SteamHelper(ILogger<SteamHelper> logger, ProcesosHelper processHelper, JuegosHelper juegosHelper)
         {
+            _logger = logger;
+            _procesosHelper = processHelper;
+            _juegosHelper = juegosHelper;
+        }
+
+        public void IniciarSteam()
+        {
+            _juegosHelper.IniciarModoJuegos();
             Process.Start("steam://run");
         }
 
-        public static void CerrarSteam()
+        public void CerrarSteam()
         {
             foreach (var process in Process.GetProcessesByName("steam"))
             {
-                ProcesosHelper.KillProcessAndChildren(process.Id);
+                _procesosHelper.KillProcessAndChildren(process.Id);
             }
+            _juegosHelper.DetenerModoJuegos();
         }
 
-        public static void ReiniciarSteam()
+        public void ReiniciarSteam()
         {
             foreach (var process in Process.GetProcessesByName("steam"))
             {
-                ProcesosHelper.KillProcessAndChildren(process.Id);
+                _procesosHelper.KillProcessAndChildren(process.Id);
             }
             Thread.Sleep(1000); // Espera un segundo antes de reiniciar
             Process.Start("steam://run");
