@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.IO;
 
 namespace AlexaController.Helpers
 {
@@ -8,18 +7,15 @@ namespace AlexaController.Helpers
         private readonly ILogger<SteamHelper> _logger;
         private readonly ProcesosHelper _procesosHelper;
 
-
         public SteamHelper(ILogger<SteamHelper> logger, ProcesosHelper processHelper)
         {
             _logger = logger;
             _procesosHelper = processHelper;
-   
         }
 
         public async Task IniciarSteamAsync()
         {
-           RunSteam();
-
+            RunSteam();
         }
 
         private static void RunSteam()
@@ -41,7 +37,6 @@ namespace AlexaController.Helpers
         public async Task CerrarSteamAsync()
         {
             StopSteam();
- 
         }
 
         private void StopSteam()

@@ -16,7 +16,7 @@ namespace AlexaController.Gestores
         private readonly List<string> Processes = new()
         {
             "GoogleDriveFS",
-            "Greenshot",            
+            "Greenshot",
             "OfficeClickToRun",
             "PerfWatson2",
             "PhoneExperienceHost",

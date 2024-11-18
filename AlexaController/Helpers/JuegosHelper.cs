@@ -31,7 +31,6 @@ namespace AlexaController.Helpers
         {
             List<Task> tasks = new List<Task>();
 
-            
             tasks.Add(_programManager.StopProgramsAsync());
             tasks.Add(_serviceManager.DisableServicesAsync());
             tasks.Add(_steamHelper.IniciarSteamAsync());

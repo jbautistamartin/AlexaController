@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace AlexaController.Helpers
 {
@@ -27,6 +26,5 @@ namespace AlexaController.Helpers
                 Process.Start("shutdown", "/r /t 0");
             });
         }
-
     }
 }
