@@ -1,25 +1,80 @@
 {
     "interactionModel": {
         "languageModel": {
-            "invocationName": "equipo",
+            "invocationName": "control de equipo",
             "intents": [
                 {
-                    "name": "ControlarEquipoIntent",
-                    "slots": [
-                        {
-                            "name": "Action",
-                            "type": "ActionType"
-                        }
-                    ],
+                    "name": "apagarEquipoIntent",
+                    "slots": [],
                     "samples": [
                         "apaga el equipo",
+                        "apagar el equipo",
+                        "detener el equipo"
+                    ]
+                },
+                {
+                    "name": "ReiniciarEquipoIntent",
+                    "slots": [],
+                    "samples": [
                         "reinicia el equipo",
+                        "reiniciar el equipo",
+                        "reboot el equipo"
+                    ]
+                },
+                {
+                    "name": "IniciarSteamIntent",
+                    "slots": [],
+                    "samples": [
                         "inicia steam",
+                        "abrir steam",
+                        "lanzar steam"
+                    ]
+                },
+                {
+                    "name": "CerrarSteamIntent",
+                    "slots": [],
+                    "samples": [
                         "cierra steam",
+                        "cerrar steam",
+                        "detener steam"
+                    ]
+                },
+                {
+                    "name": "ReiniciarSteamIntent",
+                    "slots": [],
+                    "samples": [
                         "reinicia steam",
-                        "cierra retroarch",
+                        "reiniciar steam"
+                    ]
+                },
+                {
+                    "name": "CerrarRetroarchIntent",
+                    "slots": [],
+                    "samples": [
+                        "cerrar emulador",
+                        "detener emulador",
+                        "salir de emulador",
+                        "cerrar emulacion",
+                        "detener emulacion",
+                        "salir de emulacion"
+                    ]
+                },
+                {
+                    "name": "IniciarModoJuegosIntent",
+                    "slots": [],
+                    "samples": [
                         "inicia modo juegos",
-                        "detiene modo juegos"
+                        "activar modo juegos",
+                        "lanzar modo juegos"
+                    ]
+                },
+                {
+                    "name": "DetenerModoJuegosIntent",
+                    "slots": [],
+                    "samples": [
+                        "detener modo juegos",
+                        "apagar modo juegos",
+                        "desactivar modo juegos"
                     ]
                 },
                 {
@@ -39,53 +94,7 @@
                     "samples": []
                 }
             ],
-            "types": [
-                {
-                    "name": "ActionType",
-                    "values": [
-                        {
-                            "name": {
-                                "value": "apagarEquipo"
-                            }
-                        },
-                        {
-                            "name": {
-                                "value": "reiniciarEquipo"
-                            }
-                        },
-                        {
-                            "name": {
-                                "value": "iniciarSteam"
-                            }
-                        },
-                        {
-                            "name": {
-                                "value": "cerrarSteam"
-                            }
-                        },
-                        {
-                            "name": {
-                                "value": "reiniciarSteam"
-                            }
-                        },
-                        {
-                            "name": {
-                                "value": "cerrarRetroArch"
-                            }
-                        },
-                        {
-                            "name": {
-                                "value": "iniciarModoJuegos"
-                            }
-                        },
-                        {
-                            "name": {
-                                "value": "detenerModoJuegos"
-                            }
-                        }
-                    ]
-                }
-            ]
+            "types": []
         }
     }
 }

@@ -11,42 +11,34 @@ namespace AlexaController.Helpers
             _logger = logger;
         }
 
-        public void CerrarRetroArch()
+        public async Task CerrarRetroArchAsync()
         {
-            foreach (var process in Process.GetProcessesByName("retroarch"))
+            await Task.Run(async () =>
             {
-                KillProcessAndChildren(process.Id);
-            }
+                foreach (var process in Process.GetProcessesByName("retroarch"))
+                {
+                    await KillProcessAndChildrenAsync(process.Id);
+                }
+            });
         }
 
-        public void KillProcessAndChildren(int pid)
-        {
-            var process = Process.GetProcessById(pid);
-            if (process == null) return;
-
-            foreach (var child in Process.GetProcesses()
-                        .Where(p => GetParentProcessId(p) == pid))
-            {
-                KillProcessAndChildren(child.Id);
-            }
-            process.Kill();
-            process.WaitForExit(); // Asegura que el proceso finalice antes de continuar
-        }
-
-        private int GetParentProcessId(Process process)
+        public async Task KillProcessAndChildrenAsync(int pid)
         {
             try
             {
-                using (var mo = new System.Management.ManagementObject($"win32_process.handle='{process.Id}'"))
-                {
-                    mo.Get();
-                    return Convert.ToInt32(mo["ParentProcessId"]);
-                }
+                var process = Process.GetProcessById(pid);
+                if (process == null || process.HasExited) return;
+
+                // Mata el proceso y espera su salida de manera asincrónica
+                process.Kill(entireProcessTree: true);
+                await process.WaitForExitAsync();
             }
-            catch
+            catch (Exception ex)
             {
-                return 0;
+                // Manejo de excepciones opcional, registra errores si es necesario
+                Console.WriteLine($"Error al intentar matar el proceso {pid}: {ex.Message}");
             }
         }
+
     }
 }

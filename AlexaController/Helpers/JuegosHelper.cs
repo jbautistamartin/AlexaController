@@ -5,30 +5,38 @@ namespace AlexaController.Helpers
     public class JuegosHelper
     {
         private readonly ILogger<JuegosHelper> _logger;
-        private readonly MonitorManager _monitorManager;
+        private readonly SteamHelper _steamHelper;
         private readonly ProgramManager _programManager;
         private readonly ServiceManager _serviceManager;
 
-        public JuegosHelper(ILogger<JuegosHelper> logger, MonitorManager monitorManager, ProgramManager programManager, ServiceManager serviceManager)
+        public JuegosHelper(ILogger<JuegosHelper> logger, SteamHelper steamHelper, ProgramManager programManager, ServiceManager serviceManager)
         {
             _logger = logger;
-            _monitorManager = monitorManager;
+            _steamHelper = steamHelper;
             _programManager = programManager;
             _serviceManager = serviceManager;
         }
 
-        internal void DetenerModoJuegos()
+        internal async Task DetenerModoJuegosAsync()
         {
-            _serviceManager.EnableServices();
-            _programManager.RestartPrograms();
-            _monitorManager.ConfigureDualMonitors();
+            List<Task> tasks = new List<Task>();
+
+            tasks.Add(_steamHelper.CerrarSteamAsync());
+            tasks.Add(_serviceManager.EnableServicesAsync());
+            tasks.Add(_programManager.RestartProgramsAsync());
+            await Task.WhenAll(tasks); // Ejecutar todas las tareas de forma concurrente
         }
 
-        internal void IniciarModoJuegos()
+        internal async Task IniciarModoJuegosAsync()
         {
-            _monitorManager.ConfigureSingleMonitor();
-            _programManager.StopPrograms();
-            _serviceManager.DisableServices();
+            List<Task> tasks = new List<Task>();
+
+            
+            tasks.Add(_programManager.StopProgramsAsync());
+            tasks.Add(_serviceManager.DisableServicesAsync());
+            tasks.Add(_steamHelper.IniciarSteamAsync());
+
+            await Task.WhenAll(tasks); // Ejecutar todas las tareas de forma concurrente
         }
     }
 }

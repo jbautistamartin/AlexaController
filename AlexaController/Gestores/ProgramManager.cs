@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace AlexaController.Gestores
 {
@@ -11,9 +12,23 @@ namespace AlexaController.Gestores
             _logger = logger;
         }
 
-        // Lista de procesos a detener con comentarios sobre cada uno
+        // Lista de procesos a detener
         private readonly List<string> Processes = new()
         {
+            "GoogleDriveFS",
+            "Greenshot",            
+            "OfficeClickToRun",
+            "PerfWatson2",
+            "PhoneExperienceHost",
+            "SearchApp",
+            "SearchProtocolHost",
+            "audiodg",
+            "dwm",
+            "ms-teams",
+            "msedgewebview2",
+            "pwsafe",
+            "smartscreen",
+            "smss",
             "Adobe",       // Procesos relacionados con Adobe (ejemplo: Acrobat, Photoshop, etc.)
             "GoogleDrive", // Sincronización de Google Drive
             "Greenshot",   // Capturador de pantalla
@@ -22,58 +37,79 @@ namespace AlexaController.Gestores
             "Zoom",        // Aplicación de videoconferencias
             "Dropbox",     // Sincronización de Dropbox
             "Slack",        // Comunicación de equipos
-            "PasswordSafe"
+#if !DEBUG
+            "chrome"
+#endif
         };
 
-        // Almacena los procesos detenidos previamente
-        private readonly HashSet<string> StoppedProcesses = new();
+        // Almacena las rutas de procesos detenidos
+        private readonly ConcurrentDictionary<string, string> StoppedProcesses = new();
 
-        // Método para detener programas innecesarios
-        public void StopPrograms()
+        // Método para detener programas de manera concurrente
+        public async Task StopProgramsAsync()
         {
             _logger.LogInformation("Deteniendo programas innecesarios...");
-            foreach (var processName in Processes)
+
+            await Task.WhenAll(Processes.Select(async processName =>
             {
                 try
                 {
                     var processes = Process.GetProcessesByName(processName);
                     if (processes.Length == 0)
-                    {
-                        _logger.LogInformation($"No se encontraron procesos activos de '{processName}'.");
-                        continue;
-                    }
+                        return;
 
                     foreach (var process in processes)
                     {
-                        process.Kill();
-                        process.WaitForExit();
-                        StoppedProcesses.Add(processName); // Registrar como detenido
-                        _logger.LogInformation($"Proceso '{processName}' detenido.");
+                        try
+                        {
+                            // Registrar ruta del ejecutable antes de detener
+                            string executablePath = process.MainModule?.FileName;
+                            if (!string.IsNullOrEmpty(executablePath))
+                            {
+                                StoppedProcesses[processName] = executablePath;
+                            }
+
+                            process.Kill();
+                            await process.WaitForExitAsync(); // Asíncrono en .NET 5 o superior
+                            _logger.LogInformation($"Proceso '{processName}' detenido.");
+                        }
+                        catch
+                        {
+                        }
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError($"Error al detener el proceso '{processName}': {ex.Message}");
+                    _logger.LogError($"Error al buscar procesos para '{processName}': {ex.Message}");
                 }
-            }
+            }));
         }
 
-        // Método para reiniciar programas detenidos previamente (si es posible)
-        public void RestartPrograms()
+        // Método para reiniciar programas detenidos de manera concurrente
+        public async Task RestartProgramsAsync()
         {
             _logger.LogInformation("Intentando reiniciar los programas previamente detenidos...");
-            foreach (var processName in StoppedProcesses)
+
+            await Task.WhenAll(StoppedProcesses.Select(async kvp =>
             {
+                var (processName, executablePath) = kvp;
                 try
                 {
-                    Process.Start(processName); // Intentar reiniciar el programa
-                    _logger.LogInformation($"Proceso '{processName}' reiniciado.");
+                    if (!string.IsNullOrEmpty(executablePath))
+                    {
+                        Process.Start(executablePath);
+                        _logger.LogInformation($"Proceso '{processName}' reiniciado desde '{executablePath}'.");
+                    }
+                    else
+                    {
+                        _logger.LogWarning($"No se pudo reiniciar '{processName}' porque no se encontró la ruta del ejecutable.");
+                    }
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError($"Error al reiniciar el proceso '{processName}': {ex.Message}");
                 }
-            }
+            }));
         }
     }
 }

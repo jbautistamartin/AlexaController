@@ -12,15 +12,21 @@ namespace AlexaController.Helpers
             _logger = logger;
         }
 
-        public void ApagarEquipo()
+        public async Task ApagarEquipoAsync()
         {
-            Process.Start("shutdown", "/s /t 0");
+            await Task.Run(() =>
+            {
+                Process.Start("shutdown", "/s /t 0");
+            });
         }
 
-        [HttpGet]
-        public void ReiniciarEquipo()
+        public async Task ReiniciarEquipoAsync()
         {
-            Process.Start("shutdown", "/r /t 0");
+            await Task.Run(() =>
+            {
+                Process.Start("shutdown", "/r /t 0");
+            });
         }
+
     }
 }

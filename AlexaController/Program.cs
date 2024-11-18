@@ -29,7 +29,6 @@ builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 
 // Registrar las clases como Singleton
-builder.Services.AddSingleton<MonitorManager>();
 builder.Services.AddSingleton<ProgramManager>();
 builder.Services.AddSingleton<ServiceManager>();
 builder.Services.AddSingleton<EquipoHelper>();

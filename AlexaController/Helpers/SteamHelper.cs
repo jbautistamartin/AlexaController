@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.IO;
 
 namespace AlexaController.Helpers
 {
@@ -6,38 +7,56 @@ namespace AlexaController.Helpers
     {
         private readonly ILogger<SteamHelper> _logger;
         private readonly ProcesosHelper _procesosHelper;
-        private readonly JuegosHelper _juegosHelper;
 
-        public SteamHelper(ILogger<SteamHelper> logger, ProcesosHelper processHelper, JuegosHelper juegosHelper)
+
+        public SteamHelper(ILogger<SteamHelper> logger, ProcesosHelper processHelper)
         {
             _logger = logger;
             _procesosHelper = processHelper;
-            _juegosHelper = juegosHelper;
+   
         }
 
-        public void IniciarSteam()
+        public async Task IniciarSteamAsync()
         {
-            _juegosHelper.IniciarModoJuegos();
-            Process.Start("steam://run");
+           RunSteam();
+
         }
 
-        public void CerrarSteam()
+        private static void RunSteam()
+        {
+            // Obtener el directorio del ejecutable actual
+            string currentDirectory = @"C:\Program Files (x86)\Steam\";
+
+            // Configurar el proceso para ejecutarse en la misma carpeta y agregar el parámetro
+            ProcessStartInfo startInfo = new ProcessStartInfo
+            {
+                FileName = Path.Combine(currentDirectory, "steam.exe"),
+                WorkingDirectory = currentDirectory,
+                Arguments = "-cef-disable-sandbox"  // Agregar el parámetro
+            };
+
+            Process.Start(startInfo);
+        }
+
+        public async Task CerrarSteamAsync()
+        {
+            StopSteam();
+ 
+        }
+
+        private void StopSteam()
         {
             foreach (var process in Process.GetProcessesByName("steam"))
             {
-                _procesosHelper.KillProcessAndChildren(process.Id);
+                _procesosHelper.KillProcessAndChildrenAsync(process.Id).Wait();
             }
-            _juegosHelper.DetenerModoJuegos();
         }
 
-        public void ReiniciarSteam()
+        public async Task ReiniciarSteamAsync()
         {
-            foreach (var process in Process.GetProcessesByName("steam"))
-            {
-                _procesosHelper.KillProcessAndChildren(process.Id);
-            }
-            Thread.Sleep(1000); // Espera un segundo antes de reiniciar
-            Process.Start("steam://run");
+            await CerrarSteamAsync();
+            await Task.Delay(1000); // Espera un segundo de forma asincrónica
+            await IniciarSteamAsync();
         }
     }
 }

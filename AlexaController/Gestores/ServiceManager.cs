@@ -54,8 +54,13 @@ namespace AlexaController.Gestores
             "icssvc", // Servicios de NFC y pagos (Payments and NFC/SE Manager)
             "MessagingService", // Notificaciones de SMS (Messaging Service)
             "lfsvc", // Servicio de geolocalización (Geolocation Service)
-            "UmRdpService" // Redirección de dispositivos en Escritorio Remoto
+            "UmRdpService", // Redirección de dispositivos en Escritorio Remoto
+
+            // Servicios adicionales
+            "WinDefend", // Servicio de antivirus de Windows (Windows Defender)
+            "MSSQL$SQLEXPRESS" // Servicio de SQL Server Express (asegúrate de que el nombre de la instancia sea correcto)
         };
+
 
         // Almacena los servicios desactivados previamente
         private readonly HashSet<string> DisabledServices = new();
@@ -67,58 +72,60 @@ namespace AlexaController.Gestores
             _logger = logger;
         }
 
-        // Método para desactivar los servicios
-        public void DisableServices()
+        // Método asincrónico para desactivar los servicios
+        public async Task DisableServicesAsync()
         {
             _logger.LogInformation("Desactivando servicios innecesarios...");
-            foreach (var serviceName in Services)
+            var tasks = Services.Select(serviceName => DisableServiceAsync(serviceName));
+            await Task.WhenAll(tasks);
+        }
+
+        private async Task DisableServiceAsync(string serviceName)
+        {
+            try
             {
-                try
+                using var service = new ServiceController(serviceName);
+                if (service.Status == ServiceControllerStatus.Running)
                 {
-                    using var service = new ServiceController(serviceName);
-                    if (service.Status == ServiceControllerStatus.Running)
-                    {
-                        service.Stop();
-                        service.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(10));
-                        DisabledServices.Add(serviceName); // Registrar como desactivado
-                        _logger.LogInformation($"Servicio '{serviceName}' desactivado.");
-                    }
-                    else
-                    {
-                        _logger.LogInformation($"Servicio '{serviceName}' ya estaba detenido.");
-                    }
+                    service.Stop();
+                    DisabledServices.Add(serviceName); // Registrar como desactivado
+                    _logger.LogInformation($"Servicio '{serviceName}' desactivado.");
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, $"Error al desactivar el servicio '{serviceName}': {ex.Message}");
-                }
+            }
+            catch (InvalidOperationException)
+            {
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error al desactivar el servicio '{serviceName}': {ex.Message}");
             }
         }
 
-        // Método para reactivar los servicios previamente desactivados
-        public void EnableServices()
+        // Método asincrónico para reactivar los servicios previamente desactivados
+        public async Task EnableServicesAsync()
         {
-            Console.WriteLine("Reactivando servicios desactivados...");
-            foreach (var serviceName in DisabledServices)
+            _logger.LogInformation("Reactivando servicios desactivados...");
+            var tasks = DisabledServices.Select(serviceName => EnableServiceAsync(serviceName));
+            await Task.WhenAll(tasks);
+        }
+
+        private async Task EnableServiceAsync(string serviceName)
+        {
+            try
             {
-                try
+                using var service = new ServiceController(serviceName);
+                if (service.Status == ServiceControllerStatus.Stopped)
                 {
-                    using var service = new ServiceController(serviceName);
-                    if (service.Status == ServiceControllerStatus.Stopped)
-                    {
-                        service.Start();
-                        service.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(10));
-                        _logger.LogInformation($"Servicio '{serviceName}' reactivado.");
-                    }
-                    else
-                    {
-                        _logger.LogInformation($"Servicio '{serviceName}' ya estaba en ejecución.");
-                    }
+                    service.Start();
+                    _logger.LogInformation($"Servicio '{serviceName}' reactivado.");
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, $"Error al reactivar el servicio '{serviceName}': {ex.Message}");
-                }
+            }
+            catch (InvalidOperationException)
+            {
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error al reactivar el servicio '{serviceName}': {ex.Message}");
             }
         }
     }
