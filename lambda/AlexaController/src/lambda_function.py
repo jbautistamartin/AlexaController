@@ -5,8 +5,7 @@ import base64
 def lambda_handler(event, context):
     # Verificar si se recibe un intent en la solicitud
     if 'intent' not in event['request']:
-        # Si no se recibe intent, devolver mensaje "Control de equipo listo"
-        return build_response("Control de equipo listo", False)
+        return build_response("Control de equipo listo", "https://cdn2.steamgriddb.com/thumb/1d0c4a0a5daed60c94b9b2106d1106d7.jpg", False)
 
     # Obtener el nombre del intent de la solicitud de Alexa
     intent_name = event['request']['intent']['name']
@@ -23,53 +22,52 @@ def lambda_handler(event, context):
         "DetenerModoJuegosIntent": "detenermodojuegos"
     }
     
-    # Si el intent no es válido, devolver mensaje "Control de equipo listo"
+    # URLs de imágenes
+    img_url_init = "https://cdn2.steamgriddb.com/thumb/1d0c4a0a5daed60c94b9b2106d1106d7.jpg"
+    img_url_ok = "https://cdn2.steamgriddb.com/thumb/dc62a1f7be80fa5cbac62fdb8e997a5d.jpg"
+    img_url_error = "https://cdn2.steamgriddb.com/thumb/6903dde95278048dc9c658c4b4493222.jpg"
+    
     if intent_name not in intents:
-        return build_response("Control de equipo listo", False)
+        return build_response("Intento no reconocido", img_url_init, False)
     
-    # Obtener la acción correspondiente al intent
     action = intents[intent_name]
-    
-    # URL base a la que se hará la solicitud
     url = f"https://absolute-jaybird-directly.ngrok-free.app/alexa/{action}"
     
-    # Crear el encabezado de autenticación básica
+    # Autenticación
     user = "admin"
     password = "password123"
     credentials = f"{user}:{password}"
     encoded_credentials = base64.b64encode(credentials.encode('utf-8')).decode('utf-8')
     
-    # Crear la solicitud con el encabezado personalizado para la autenticación básica
+    # Solicitud
     request = urllib.request.Request(url)
     request.add_header("Authorization", f"Basic {encoded_credentials}")
     request.add_header("ngrok-skip-browser-warning", "false")
     
     try:
-        # Realiza la solicitud a la página web
         response = urllib.request.urlopen(request)
-        content = response.read().decode('utf-8')
-        
-        # Verifica si la respuesta fue exitosa
         if response.status == 200:
             message = f"La acción '{action}' se ha completado con éxito."
+            img_url = img_url_ok
+            end_session = True
         else:
-            message = f"Hubo un error al realizar la acción. Estado: {response.status}"
-      
+            message = f"Error al realizar la acción. Estado: {response.status}"
+            img_url = img_url_error
+            end_session = False
     except urllib.error.URLError as e:
-        # En caso de error de red o URL
-        message = f"Hubo un problema al intentar realizar la acción: {e.reason}. Intente nuevamente."
-        print(f"Error de conexión: {e}")
+        message = f"Hubo un problema: {e.reason}. Intente nuevamente."
+        img_url = img_url_error
+        end_session = False
     except Exception as e:
-        # En caso de error inesperado
-        message = f"Hubo un problema al intentar realizar la acción. {str(e)}"
-        print(f"Error desconocido: {str(e)}")
+        message = f"Error desconocido: {str(e)}"
+        img_url = img_url_error
+        end_session = False
 
-    # Respuesta de Alexa
-    return build_response(message, False)
+    return build_response(message, img_url, end_session)
 
-def build_response(message, end_session):
+def build_response(message, img_url, end_session):
     """
-    Función auxiliar para construir la respuesta de Alexa.
+    Construye la respuesta de Alexa con imagen opcional.
     """
     return {
         'version': '1.0',
@@ -77,6 +75,15 @@ def build_response(message, end_session):
             'outputSpeech': {
                 'type': 'PlainText',
                 'text': message
+            },
+            'card': {
+                'type': 'Standard',
+                'title': "Control de Equipo",
+                'text': message,
+                'image': {
+                    'smallImageUrl': img_url,
+                    'largeImageUrl': img_url
+                }
             },
             'shouldEndSession': end_session
         }
