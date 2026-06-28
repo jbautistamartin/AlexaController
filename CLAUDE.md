@@ -37,7 +37,7 @@ This is a voice-controlled PC automation system. An Alexa skill (in Spanish, inv
 
 **`Controllers/AlexaController.cs`** — Single controller with `[Authorize]` on all actions. Routes: `GET /alexa/{action}`. Immediately returns HTTP 200 and runs the real work in a background `Task.Run`. The `/swagger` path is explicitly excluded from authentication middleware.
 
-**Endpoints:** `Estado` (returns gaming-mode state JSON), `ApagarEquipo`, `ReiniciarEquipo`, `IniciarSteam`, `CerrarSteam`, `ReiniciarSteam`, `CerrarRetroArch`, `IniciarModoJuegos`, `DetenerModoJuegos`, `SubirVolumen`, `BajarVolumen`, `Silenciar`.
+**Endpoints:** `ApagarEquipo`, `ReiniciarEquipo`, `IniciarSteam`, `CerrarSteam`, `ReiniciarSteam`, `CerrarRetroArch`, `IniciarModoJuegos`, `DetenerModoJuegos`, `SubirVolumen`, `BajarVolumen`, `Silenciar`.
 
 **`Helpers/`** — Each helper wraps a single concern:
 - `EquipoHelper` — shutdown/restart via `shutdown /s /t 0` / `shutdown /r /t 0`
@@ -47,10 +47,9 @@ This is a voice-controlled PC automation system. An Alexa skill (in Spanish, inv
 - `VolumeHelper` — raises/lowers/mutes system volume via Win32 `keybd_event` (VK_VOLUME_UP/DOWN/MUTE); step count from `VolumenPasos` in config (default: 3)
 - `JuegosHelper` — orchestrates "gaming mode": saves monitor topology, switches to single monitor, stops background apps + disables Windows services (lists from `Procesos`/`Servicios` in `appsettings.json`), starts Steam; reverses everything on stop
 
-**`Gestores/`** — Stateful managers used only by `JuegosHelper`:
-- `ProgramManager` — kills background apps and remembers their paths to restart them
-- `ServiceManager` — disables Windows services and tracks them to re-enable later
-- `StateManager` — persists gaming-mode state (active flag, stopped processes, disabled services, previous monitor topology) to a JSON file so it survives app restarts; path configured via `EstadoFilePath` in `appsettings.json` (default: `estado_modo_juegos.json`)
+**`Gestores/`** — Managers used only by `JuegosHelper`:
+- `ProgramManager` — kills background apps and returns their paths so they can be restarted
+- `ServiceManager` — stops Windows services and returns their names so they can be re-enabled
 
 **`Seguridad/BasicAuthHandler.cs`** — Custom `AuthenticationHandler` that validates Base64 credentials from the `Authorization` header against `BasicAuth:Username` / `BasicAuth:Password` in `appsettings.json`.
 
@@ -59,7 +58,6 @@ This is a voice-controlled PC automation system. An Alexa skill (in Spanish, inv
 `appsettings.json` holds all runtime config:
 - `BasicAuth:Username` / `BasicAuth:Password` — API credentials (also set in ngrok `--basic-auth`)
 - `Kestrel:Endpoints:Http:Url` — hardcoded to `http://localhost:5780`
-- `EstadoFilePath` — path for the gaming-mode state JSON file (default: `estado_modo_juegos.json`)
 - `SteamPath` — path to Steam installation (default: `C:\Program Files (x86)\Steam\`)
 - `VolumenPasos` — number of key presses per volume up/down command (default: `3`)
 - `Procesos` — JSON array of process names to kill when entering gaming mode

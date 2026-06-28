@@ -15,7 +15,6 @@
 // License along with this library; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
-using AlexaController.Gestores;
 using AlexaController.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -34,7 +33,6 @@ namespace AlexaController.Controllers
         private readonly SteamHelper _steamHelper;
         private readonly VolumeHelper _volumeHelper;
         private readonly JoypadHelper _joypadHelper;
-        private readonly StateManager _stateManager;
 
         public AlexaController(
             ILogger<AlexaController> logger,
@@ -43,8 +41,7 @@ namespace AlexaController.Controllers
             ProcesosHelper procesosHelper,
             SteamHelper steamHelper,
             VolumeHelper volumeHelper,
-            JoypadHelper joypadHelper,
-            StateManager stateManager)
+            JoypadHelper joypadHelper)
         {
             _logger = logger;
             _equipoHelper = equipoHelper;
@@ -53,20 +50,6 @@ namespace AlexaController.Controllers
             _steamHelper = steamHelper;
             _volumeHelper = volumeHelper;
             _joypadHelper = joypadHelper;
-            _stateManager = stateManager;
-        }
-
-        [HttpGet(nameof(Estado))]
-        public IActionResult Estado()
-        {
-            var estado = _stateManager.ObtenerEstado();
-            return Ok(new
-            {
-                modoJuegos = estado.Activo ? "activo" : (estado.Iniciando ? "iniciando" : "inactivo"),
-                iniciadoEn = estado.IniciadoEn,
-                procesosDetenidos = estado.ProcesosDetenidos.Count,
-                serviciosDesactivados = estado.ServiciosDesactivados.Count
-            });
         }
 
         private string UsuarioActual => User.Identity?.Name ?? "desconocido";

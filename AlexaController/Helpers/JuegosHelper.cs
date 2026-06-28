@@ -26,16 +26,17 @@ namespace AlexaController.Helpers
         private readonly SteamHelper _steamHelper;
         private readonly ProgramManager _programManager;
         private readonly ServiceManager _serviceManager;
-        private readonly StateManager _stateManager;
         private readonly MonitorHelper _monitorHelper;
         private readonly JoypadHelper _joypadHelper;
+
+        private Dictionary<string, string> _procesosDetenidos = new();
+        private List<string> _serviciosDesactivados = new();
 
         public JuegosHelper(
             ILogger<JuegosHelper> logger,
             SteamHelper steamHelper,
             ProgramManager programManager,
             ServiceManager serviceManager,
-            StateManager stateManager,
             MonitorHelper monitorHelper,
             JoypadHelper joypadHelper)
         {
@@ -43,59 +44,39 @@ namespace AlexaController.Helpers
             _steamHelper = steamHelper;
             _programManager = programManager;
             _serviceManager = serviceManager;
-            _stateManager = stateManager;
             _monitorHelper = monitorHelper;
             _joypadHelper = joypadHelper;
         }
 
         internal async Task IniciarModoJuegosAsync()
         {
-            var estado = _stateManager.ObtenerEstado();
-            if (estado.Activo || estado.Iniciando)
-            {
-                _logger.LogWarning("Modo juegos ya está {Estado}. Se ignora la petición de inicio.", estado.Activo ? "activo" : "iniciando");
-                return;
-            }
-
             var sw = Stopwatch.StartNew();
-            _stateManager.SetIniciando();
 
-            var modoMonitorAnterior = _monitorHelper.ObtenerModoActual();
             _monitorHelper.ActivarSoloMonitorPrincipal();
 
-            var tareaProcesos = _programManager.StopProgramsAsync();
-            var procesos = await tareaProcesos;
-            var tareaServicios = _serviceManager.DisableServicesAsync();
-            var servicios = await tareaServicios;
-            var tareaMando = _joypadHelper.ReconectarMandoAsync();
-            await tareaMando;
-
+            await _joypadHelper.ReconectarMandoAsync();
             await _steamHelper.IniciarSteamAsync();
 
-            _stateManager.SetActivo(procesos, servicios, modoMonitorAnterior);
+            _procesosDetenidos = await _programManager.StopProgramsAsync();
+            _serviciosDesactivados = await _serviceManager.DisableServicesAsync();
+
             _logger.LogInformation("Modo juegos iniciado completamente en {Elapsed:0.0}s.", sw.Elapsed.TotalSeconds);
         }
 
         internal async Task DetenerModoJuegosAsync()
         {
-            var estado = _stateManager.ObtenerEstado();
-            if (!estado.Activo)
-            {
-                _logger.LogWarning("Modo juegos no está activo. Se ignora la petición de detención.");
-                return;
-            }
-
             var sw = Stopwatch.StartNew();
 
             await Task.WhenAll(
                 _steamHelper.CerrarSteamAsync(),
-                _serviceManager.EnableServicesAsync(estado.ServiciosDesactivados),
-                _programManager.RestartProgramsAsync(estado.ProcesosDetenidos)
+                _serviceManager.EnableServicesAsync(_serviciosDesactivados),
+                _programManager.RestartProgramsAsync(_procesosDetenidos)
             );
 
             _monitorHelper.AplicarModo("extend");
 
-            _stateManager.SetDetenido();
+            _procesosDetenidos = new();
+            _serviciosDesactivados = new();
             _logger.LogInformation("Modo juegos detenido completamente en {Elapsed:0.0}s.", sw.Elapsed.TotalSeconds);
         }
     }

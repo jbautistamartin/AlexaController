@@ -49,7 +49,6 @@ builder.Services.AddAuthentication("BasicAuth")
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 
-builder.Services.AddSingleton<StateManager>();
 builder.Services.AddSingleton<ProgramManager>();
 builder.Services.AddSingleton<ServiceManager>();
 builder.Services.AddSingleton<EquipoHelper>();
@@ -93,6 +92,20 @@ app.UseWhen(context => !context.Request.Path.StartsWithSegments("/swagger"), app
 
 app.UseAuthorization();
 app.MapControllers();
+
+var juegosHelper = app.Services.GetRequiredService<JuegosHelper>();
+app.Lifetime.ApplicationStopping.Register(() =>
+{
+    try
+    {
+        Log.Information("Aplicación deteniéndose. Ejecutando DetenerModoJuegos...");
+        juegosHelper.DetenerModoJuegosAsync().GetAwaiter().GetResult();
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "Error al detener el modo juegos durante el cierre de la aplicación.");
+    }
+});
 
 Log.Information("AlexaController iniciado en {Url} (máquina: {Maquina})",
     builder.Configuration["Kestrel:Endpoints:Http:Url"] ?? "http://localhost:5780",

@@ -15,7 +15,6 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
-import json
 import urllib.request
 import urllib.error
 import base64
@@ -43,7 +42,6 @@ INTENTS = {
     "CerrarRetroarchIntent":    "cerrarretroarch",
     "IniciarModoJuegosIntent":  "iniciarmodojuegos",
     "DetenerModoJuegosIntent":  "detenermodojuegos",
-    "EstadoIntent":             "estado",
     "SubirVolumenIntent":       "subirvolumen",
     "BajarVolumenIntent":       "bajarvolumen",
     "SilenciarIntent":          "silenciar",
@@ -123,9 +121,6 @@ def ejecutar_accion(accion, supports_apl, session_attrs):
         req.add_header("ngrok-skip-browser-warning", "true")
         response = urllib.request.urlopen(req, timeout=5)
 
-        if accion == "estado":
-            return manejar_estado(response, supports_apl)
-
         mensaje = MENSAJES_OK.get(accion, f"Acción '{accion}' completada.")
         return build_response(mensaje, IMG_OK, True, supports_apl, {})
 
@@ -134,27 +129,6 @@ def ejecutar_accion(accion, supports_apl, session_attrs):
     except Exception as e:
         return build_response(f"Error inesperado: {str(e)}", IMG_ERROR, False, supports_apl, {})
 
-
-def manejar_estado(response, supports_apl):
-    try:
-        datos = json.loads(response.read().decode())
-        modo = datos.get("modoJuegos", "inactivo")
-        if modo == "activo":
-            procs = datos.get("procesosDetenidos", 0)
-            servs = datos.get("serviciosDesactivados", 0)
-            mensaje = f"El modo juegos está activo. He detenido {procs} programas y {servs} servicios."
-            img = IMG_OK
-        elif modo == "iniciando":
-            mensaje = "El modo juegos se está activando todavía. Espera un momento y vuelve a preguntarme."
-            img = IMG_INIT
-        else:
-            mensaje = "El modo juegos está inactivo."
-            img = IMG_INIT
-    except Exception:
-        mensaje = "No pude leer el estado del equipo."
-        img = IMG_ERROR
-
-    return build_response(mensaje, img, True, supports_apl, {})
 
 
 def build_response(message, img_url, end_session, supports_apl, session_attrs):
