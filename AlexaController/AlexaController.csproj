@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+
+    <!-- Metadata del paquete -->
+    <AssemblyName>AlexaController</AssemblyName>
+    <RootNamespace>AlexaController</RootNamespace>
+    <AssemblyTitle>AlexaController</AssemblyTitle>
+    <Product>AlexaController</Product>
+    <Description>Sistema de automatización de PC por voz mediante Alexa.</Description>
+    <Authors>José Luis Bautista Martín</Authors>
+    <Copyright>Copyright (C) 2026 José Luis Bautista Martín</Copyright>
+    <Company>José Luis Bautista Martín</Company>
+
+    <!-- Licencia LGPL v2.1 -->
+    <PackageLicenseExpression>LGPL-2.1-only</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE" Pack="true" PackagePath="\" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="logs\**" />
+    <Content Remove="logs\**" />
+    <EmbeddedResource Remove="logs\**" />
+    <None Remove="logs\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+<PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+    <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.9.0" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="10.0.9" />
+  </ItemGroup>
+
+</Project>

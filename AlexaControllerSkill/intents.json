@@ -1,0 +1,151 @@
+{
+    "interactionModel": {
+        "languageModel": {
+            "invocationName": "control de equipo",
+            "intents": [
+                {
+                    "name": "apagarEquipoIntent",
+                    "slots": [],
+                    "samples": [
+                        "apaga el equipo",
+                        "apagar el equipo",
+                        "detener el equipo"
+                    ]
+                },
+                {
+                    "name": "ReiniciarEquipoIntent",
+                    "slots": [],
+                    "samples": [
+                        "reinicia el equipo",
+                        "reiniciar el equipo",
+                        "reboot el equipo"
+                    ]
+                },
+                {
+                    "name": "IniciarSteamIntent",
+                    "slots": [],
+                    "samples": [
+                        "inicia steam",
+                        "abrir steam",
+                        "lanzar steam"
+                    ]
+                },
+                {
+                    "name": "CerrarSteamIntent",
+                    "slots": [],
+                    "samples": [
+                        "cierra steam",
+                        "cerrar steam",
+                        "detener steam"
+                    ]
+                },
+                {
+                    "name": "ReiniciarSteamIntent",
+                    "slots": [],
+                    "samples": [
+                        "reinicia steam",
+                        "reiniciar steam"
+                    ]
+                },
+                {
+                    "name": "CerrarRetroarchIntent",
+                    "slots": [],
+                    "samples": [
+                        "cerrar emulador",
+                        "detener emulador",
+                        "salir de emulador",
+                        "cerrar emulacion",
+                        "detener emulacion",
+                        "salir de emulacion"
+                    ]
+                },
+                {
+                    "name": "IniciarModoJuegosIntent",
+                    "slots": [],
+                    "samples": [
+                        "inicia modo juegos",
+                        "activar modo juegos",
+                        "lanzar modo juegos"
+                    ]
+                },
+                {
+                    "name": "DetenerModoJuegosIntent",
+                    "slots": [],
+                    "samples": [
+                        "detener modo juegos",
+                        "apagar modo juegos",
+                        "desactivar modo juegos"
+                    ]
+                },
+                {
+                    "name": "EstadoIntent",
+                    "slots": [],
+                    "samples": [
+                        "cuál es el estado",
+                        "estado del equipo",
+                        "está el modo juegos activo",
+                        "está listo el modo juegos",
+                        "está listo",
+                        "qué está pasando"
+                    ]
+                },
+                {
+                    "name": "SubirVolumenIntent",
+                    "slots": [],
+                    "samples": [
+                        "sube el volumen",
+                        "subir volumen",
+                        "más volumen",
+                        "volumen más alto"
+                    ]
+                },
+                {
+                    "name": "BajarVolumenIntent",
+                    "slots": [],
+                    "samples": [
+                        "baja el volumen",
+                        "bajar volumen",
+                        "menos volumen",
+                        "volumen más bajo"
+                    ]
+                },
+                {
+                    "name": "SilenciarIntent",
+                    "slots": [],
+                    "samples": [
+                        "silencia el volumen",
+                        "silenciar",
+                        "quita el sonido",
+                        "mutea el sonido",
+                        "activa el sonido"
+                    ]
+                },
+                {
+                    "name": "AMAZON.YesIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.NoIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.CancelIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.HelpIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.StopIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.NavigateHomeIntent",
+                    "samples": []
+                }
+            ],
+            "types": []
+        }
+    }
+}
