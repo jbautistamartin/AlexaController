@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Game Controller</string>
+
+    <!-- Navegación -->
+    <string name="nav_home">Inicio</string>
+    <string name="nav_settings">Ajustes</string>
+    <string name="nav_about">Acerca de</string>
+    <string name="nav_log">Log</string>
+
+    <!-- Grupos Home -->
+    <string name="grupo_equipo">Equipo</string>
+    <string name="grupo_steam">Steam</string>
+    <string name="grupo_juegos">Modo Juegos</string>
+    <string name="grupo_otros">Otros</string>
+    <string name="grupo_volumen">Volumen</string>
+
+    <!-- Acciones -->
+    <string name="accion_apagar">Apagar</string>
+    <string name="accion_reiniciar_equipo">Reiniciar</string>
+    <string name="accion_iniciar_steam">Iniciar</string>
+    <string name="accion_cerrar_steam">Cerrar</string>
+    <string name="accion_reiniciar_steam">Reiniciar</string>
+    <string name="accion_iniciar_modo_juegos">Iniciar</string>
+    <string name="accion_detener_modo_juegos">Detener</string>
+    <string name="accion_cerrar_retroarch">Cerrar RetroArch</string>
+    <string name="accion_reconectar_mando">Reconectar Mando</string>
+    <string name="accion_subir_volumen">Subir</string>
+    <string name="accion_bajar_volumen">Bajar</string>
+    <string name="accion_silenciar">Silenciar</string>
+
+    <!-- Confirmaciones -->
+    <string name="confirmar_titulo">¿Confirmar acción?</string>
+    <string name="confirmar_si">Sí</string>
+    <string name="confirmar_no">No</string>
+    <string name="confirmar_apagar">¿Seguro que quieres apagar el equipo?</string>
+    <string name="confirmar_reiniciar_equipo">¿Seguro que quieres reiniciar el equipo?</string>
+    <string name="confirmar_cerrar_steam">¿Seguro que quieres cerrar Steam?</string>
+    <string name="confirmar_reiniciar_steam">¿Seguro que quieres reiniciar Steam?</string>
+    <string name="confirmar_detener_juegos">¿Seguro que quieres detener el modo juegos?</string>
+
+    <!-- Settings -->
+    <string name="settings_url_label">URL del servidor</string>
+    <string name="settings_url_hint">https://xxxx.ngrok.io</string>
+    <string name="settings_usuario_label">Usuario</string>
+    <string name="settings_contrasena_label">Contraseña</string>
+    <string name="settings_cert_invalidos">Aceptar certificados HTTPS inválidos</string>
+    <string name="settings_guardar">Guardar</string>
+    <string name="settings_probar">Probar conexión</string>
+    <string name="settings_guardado">Configuración guardada</string>
+    <string name="settings_conexion_ok">Conexión correcta</string>
+    <string name="settings_intervalo_log_label">Refresco del log (segundos)</string>
+    <string name="settings_ir_al_log">Ir al log al ejecutar una acción</string>
+
+    <!-- Mensajes Home -->
+    <string name="comando_enviado">Comando enviado</string>
+    <string name="error_conexion">Error: %1$s</string>
+
+    <!-- Log -->
+    <string name="log_sin_datos">Sin datos</string>
+    <string name="log_ultimo_refresco">Actualizado: %1$s</string>
+    <string name="log_auto_refresco">Auto</string>
+    <string name="log_vacio">Sin entradas en el log</string>
+    <string name="log_confirmar_borrar">¿Seguro que quieres borrar el log del servidor?</string>
+
+    <!-- Acerca de -->
+    <string name="about_version">Versión %1$s</string>
+    <string name="about_empresa">Capicua</string>
+    <string name="about_autor">José Luis Bautista Martín</string>
+    <string name="about_descripcion">Controla tu PC mediante botones o comandos de voz con Alexa.</string>
+    <string name="about_proyecto_titulo">Proyecto</string>
+    <string name="about_proyecto_detalle">AlexaController\nAPI de automatización de PC por voz</string>
+    <string name="about_licencia">Distribuido bajo licencia GNU LGPL v2.1\nCopyright © 2026 Capicua</string>
+</resources>

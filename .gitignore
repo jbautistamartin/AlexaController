@@ -405,3 +405,35 @@ FodyWeavers.xsd
 *.sln.iml
 /.claude
 dotnet-tools.json
+
+# ── Android (GameController) ──────────────────────────────────────────────────
+
+# Gradle
+GameController/.gradle/
+GameController/build/
+GameController/app/build/
+GameController/local.properties
+
+# Android Studio / IntelliJ IDEA
+GameController/.idea/
+GameController/**/*.iml
+GameController/captures/
+GameController/.externalNativeBuild/
+GameController/.cxx/
+
+# Keystore (nunca commitear credenciales de firma)
+*.jks
+*.keystore
+
+# Google Services (contiene API keys)
+google-services.json
+
+# Python / Lambda
+lambda/**/__pycache__/
+lambda/**/*.pyc
+lambda/**/*.pyo
+lambda/**/.env
+lambda/**/package/
+
+# Logs de la API (generados en tiempo de ejecución)
+AlexaController/logs/

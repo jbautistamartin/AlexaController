@@ -1,0 +1,359 @@
+# AlexaController — Documentación Técnica
+
+## Índice
+
+1. [Descripción del sistema](#1-descripción-del-sistema)
+2. [Arquitectura general](#2-arquitectura-general)
+3. [Flujo de una petición de voz](#3-flujo-de-una-petición-de-voz)
+4. [API ASP.NET Core](#4-api-aspnet-core)
+5. [Función AWS Lambda](#5-función-aws-lambda)
+6. [Skill de Alexa](#6-skill-de-alexa)
+7. [Aplicación Android (GameController)](#7-aplicación-android-gamecontroller)
+8. [Seguridad](#8-seguridad)
+9. [Configuración](#9-configuración)
+10. [Despliegue y arranque automático](#10-despliegue-y-arranque-automático)
+11. [Registro (logs)](#11-registro-logs)
+12. [Posibles incidencias](#12-posibles-incidencias)
+
+---
+
+## 1. Descripción del sistema
+
+**AlexaController** es un sistema de automatización de PC por voz. Permite controlar un PC con Windows mediante:
+
+- **Voz** — diciendo comandos a un dispositivo Alexa en español (skill: *"control de equipo"*)
+- **Botones** — desde la aplicación Android **GameController**
+
+Acciones disponibles:
+
+| Acción | Descripción |
+|--------|-------------|
+| `ApagarEquipo` | Apaga el PC (`shutdown /s /t 0`) |
+| `ReiniciarEquipo` | Reinicia el PC (`shutdown /r /t 0`) |
+| `IniciarSteam` | Lanza Steam |
+| `CerrarSteam` | Cierra Steam (mata árbol de procesos) |
+| `ReiniciarSteam` | Cierra y vuelve a abrir Steam |
+| `CerrarRetroArch` | Cierra RetroArch y sus hijos |
+| `IniciarModoJuegos` | Activa el modo juegos (monitor único, parar procesos, iniciar Steam) |
+| `DetenerModoJuegos` | Revierte el modo juegos |
+| `SubirVolumen` | Sube el volumen N pasos |
+| `BajarVolumen` | Baja el volumen N pasos |
+| `Silenciar` | Silencia / activa el sonido |
+| `ReconectarMando` | Reconecta el mando vía PowerShell |
+
+Endpoints adicionales (solo desde GameController):
+
+| Endpoint | Método | Descripción |
+|----------|--------|-------------|
+| `GET /log/Obtener` | GET | Devuelve las entradas del log actual |
+| `DELETE /log/Borrar` | DELETE | Vacía el archivo de log |
+
+---
+
+## 2. Arquitectura general
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        CLIENTE DE VOZ                           │
+│   Echo / dispositivo Alexa   ──►  Alexa Cloud                   │
+└─────────────────────────────────────────────────────────────────┘
+                                          │
+                                          ▼ HTTPS
+┌─────────────────────────────────────────────────────────────────┐
+│                        AWS Lambda (Python 3.13)                 │
+│  lambda/AlexaController/src/lambda_function.py                  │
+│  - Recibe AlexaRequest (intent name)                            │
+│  - Mapea intent → ruta API                                      │
+│  - Llama GET /alexa/{accion} con Basic Auth                     │
+└─────────────────────────────────────────────────────────────────┘
+                                          │
+                                          ▼ HTTPS (ngrok)
+┌─────────────────────────────────────────────────────────────────┐
+│                  ASP.NET Core API  (net10.0-windows)            │
+│  AlexaController/                                               │
+│  ├── Controllers/AlexaController.cs   GET /alexa/{accion}       │
+│  ├── Controllers/LogController.cs     GET|DELETE /log/...       │
+│  ├── Helpers/          Lógica de negocio (Steam, volumen, ...)  │
+│  ├── Gestores/         Estado del modo juegos                   │
+│  └── Seguridad/        Basic Auth handler                       │
+│                                                                 │
+│  Ejecutándose en http://localhost:5780                          │
+└─────────────────────────────────────────────────────────────────┘
+                  ▲
+                  │ HTTPS (ngrok) / HTTP (LAN)
+┌─────────────────────────────────────────────────────────────────┐
+│              GameController  (Android, Kotlin)                  │
+│  - Botones de acción → POST a /alexa/{accion}                   │
+│  - Visor de log → GET /log/Obtener (refresco automático)        │
+│  - Ajustes → URL, usuario, contraseña, intervalo, navegación    │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 3. Flujo de una petición de voz
+
+```
+1. Usuario: "Alexa, dile a control de equipo que inicie Steam"
+2. Alexa Cloud: detecta intent → AbrirSteamIntent
+3. AWS Lambda: mapea AbrirSteamIntent → "IniciarSteam"
+4. Lambda: GET https://<ngrok>/alexa/IniciarSteam  (Basic Auth)
+5. API: 200 OK inmediato; Task.Run en background
+6. Background: SteamHelper.IniciarSteamAsync() → abre Steam
+7. Alexa: responde al usuario con APL + texto de confirmación
+```
+
+La API devuelve **200 OK de inmediato** sin esperar a que la acción termine, para no superar el timeout de 8 s de Alexa.
+
+---
+
+## 4. API ASP.NET Core
+
+### Estructura de carpetas
+
+```
+AlexaController/
+├── Controllers/
+│   ├── AlexaController.cs     Endpoints /alexa/{accion}
+│   └── LogController.cs       Endpoints /log/Obtener y /log/Borrar
+├── Helpers/
+│   ├── EquipoHelper.cs        shutdown / restart
+│   ├── SteamHelper.cs         iniciar / cerrar / reiniciar Steam
+│   ├── ProcesosHelper.cs      cerrar RetroArch (árbol de procesos)
+│   ├── MonitorHelper.cs       QueryDisplayConfig / SetDisplayConfig (Win32)
+│   ├── VolumeHelper.cs        keybd_event VK_VOLUME_* (Win32)
+│   ├── JoypadHelper.cs        PowerShell – reconexión del mando
+│   └── JuegosHelper.cs        orquesta el modo juegos
+├── Gestores/
+│   ├── ProgramManager.cs      mata procesos y guarda rutas para relanzarlos
+│   └── ServiceManager.cs      para / reactiva servicios de Windows
+├── Seguridad/
+│   └── BasicAuthHandler.cs    AuthenticationHandler custom
+└── Program.cs                 DI, Serilog, Kestrel, Swagger (dev)
+```
+
+### Modo juegos (`JuegosHelper`)
+
+Al **iniciar**:
+1. Guarda topología de monitores actual
+2. Cambia a monitor único (`SetDisplayConfig`)
+3. Mata los procesos listados en `Procesos` (guarda sus rutas)
+4. Detiene los servicios listados en `Servicios`
+5. Inicia Steam
+
+Al **detener** (o al cerrar la aplicación):
+1. Cierra Steam
+2. Reactiva los servicios
+3. Relanza los procesos guardados
+4. Restaura la topología de monitores
+
+### LogController
+
+- **`GET /log/Obtener`** — Lee el archivo de log del día actual (Serilog rolling), parsea las líneas con formato `[HH:mm:ss LVL] mensaje` y las devuelve como JSON estructurado:
+  ```json
+  {
+    "entradas": [
+      { "hora": "10:30:00", "nivel": "INF", "mensaje": "AlexaController iniciado…" },
+      { "hora": "10:31:00", "nivel": "ERR", "mensaje": "Error al…", "excepcion": "System.Exception:…" }
+    ]
+  }
+  ```
+- **`DELETE /log/Borrar`** — Trunca el archivo de log activo (`FileShare.ReadWrite` para no interferir con Serilog `shared: true`).
+
+---
+
+## 5. Función AWS Lambda
+
+Archivo: `lambda/AlexaController/src/lambda_function.py` (Python 3.13)
+
+**Responsabilidades:**
+- Recibir el `AlexaRequest` con `intent.name`
+- Mapear el nombre del intent al endpoint de la API
+- Llamar a `GET https://<API_URL>/alexa/{accion}` con Basic Auth
+- Construir una respuesta APL (visual) + `outputSpeech` para Alexa
+
+**Variables de entorno en AWS Lambda:**
+
+| Variable | Descripción |
+|----------|-------------|
+| `API_URL` | URL pública del túnel ngrok |
+| `API_USER` | Usuario Basic Auth |
+| `API_PASSWORD` | Contraseña Basic Auth |
+
+---
+
+## 6. Skill de Alexa
+
+Archivo: `AlexaControllerSkill/intents.json`
+
+- Idioma: español
+- Invocación: *"control de equipo"*
+- 8 intents personalizados más los built-in (`AMAZON.StopIntent`, etc.)
+
+---
+
+## 7. Aplicación Android (GameController)
+
+### Stack
+
+| Capa | Tecnología |
+|------|-----------|
+| Lenguaje | Kotlin |
+| SDK mínimo | Android 8.0 (API 26) |
+| SDK objetivo | Android 15 (API 35) |
+| DI | Hilt 2.x |
+| Configuración | DataStore Preferences |
+| HTTP | OkHttp 4.x |
+| Navegación | Navigation Component + BottomNavigationView |
+| UI | Material Design 3 |
+| Logging | Timber |
+
+### Estructura de paquetes
+
+```
+com.capicua.gamecontroller
+├── data/
+│   ├── config/
+│   │   ├── AppConfig.kt           Datos de configuración (URL, usuario, contraseña, opciones)
+│   │   └── ConfigDataStore.kt     Persistencia con DataStore Preferences
+│   └── remote/
+│       └── ApiClient.kt           Cliente HTTP (OkHttp), Basic Auth, SSL custom
+├── di/
+│   ├── ConfigModule.kt            Provee DataStore
+│   └── NetworkModule.kt           Provee OkHttpClient
+├── domain/model/
+│   └── Accion.kt                  Enum de rutas de la API
+└── presentation/
+    ├── home/
+    │   ├── HomeFragment.kt        Botones de acción; navega al log si configurado
+    │   └── HomeViewModel.kt       Ejecuta acciones; estados Idle/Cargando/Exito/ExitoIrAlLog/Error
+    ├── log/
+    │   ├── LogEntrada.kt          Modelo: hora, nivel, mensaje, excepción
+    │   ├── LogAdapter.kt          RecyclerView adapter con color por nivel
+    │   ├── LogFragment.kt         Visor de log con auto-refresco
+    │   └── LogViewModel.kt        Carga/borra log; temporizador de refresco
+    ├── settings/
+    │   ├── SettingsFragment.kt    Formulario de configuración
+    │   └── SettingsViewModel.kt   Guarda config; prueba conexión
+    └── about/
+        └── AboutFragment.kt       Info de la app y licencia
+```
+
+### Configuración persistida (`AppConfig`)
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `urlServidor` | String | URL base del servidor (sin `/` final) |
+| `usuario` | String | Usuario Basic Auth |
+| `contrasena` | String | Contraseña Basic Auth |
+| `aceptarCertificadosInvalidos` | Boolean | Ignorar errores SSL (para ngrok free) |
+| `intervaloRefrescoLog` | Int | Segundos entre refrescos automáticos del log (mín. 1) |
+| `irAlLogAlEjecutar` | Boolean | Navegar automáticamente al visor de log tras ejecutar una acción |
+
+### Visor de log
+
+- El `LogFragment` inicia el refresco automático en `onResume()` y lo para en `onPause()`
+- Cada entrada muestra: **borde de color** + **nivel** (INF / WRN / ERR / DBG) + **hora** + **mensaje** + **excepción** (si existe)
+- Colores: ERR = rojo, WRN = naranja, INF = azul, DBG = gris
+- El botón de borrar solicita confirmación antes de vaciar el log en el servidor
+
+---
+
+## 8. Seguridad
+
+### Basic Auth
+
+- Las credenciales se configuran en `appsettings.json` (`BasicAuth:Username` / `BasicAuth:Password`)
+- El `BasicAuthHandler` (custom `AuthenticationHandler`) valida el header `Authorization: Basic <base64>`
+- Todos los endpoints de `AlexaController` y `LogController` requieren `[Authorize]`
+- `/swagger` está explícitamente excluido del middleware de autenticación
+
+### SSL / ngrok
+
+- La API escucha en HTTP localmente (`http://localhost:5780`); ngrok añade HTTPS y autenticación básica redundante
+- La app Android acepta opcionalmente certificados inválidos (para túneles ngrok gratuitos con certificado propio)
+- En producción se recomienda usar ngrok con dominio fijo y certificado válido
+
+---
+
+## 9. Configuración
+
+### `AlexaController/appsettings.json`
+
+```json
+{
+  "BasicAuth": {
+    "Username": "tu_usuario",
+    "Password": "tu_contraseña"
+  },
+  "Kestrel": { "Endpoints": { "Http": { "Url": "http://localhost:5780" } } },
+  "SteamPath": "C:\\Program Files (x86)\\Steam\\",
+  "JoypadFriendlyName": "F710",
+  "VolumenPasos": 3,
+  "Procesos": [ "GoogleDriveFS", "OneDrive", "Teams", ... ],
+  "Servicios": [ "WSearch", "wuauserv", "DiagTrack", ... ]
+}
+```
+
+### Variables de entorno Lambda
+
+| Variable | Ejemplo |
+|----------|---------|
+| `API_URL` | `https://xxxx.ngrok-free.app` |
+| `API_USER` | `usuario` |
+| `API_PASSWORD` | `contraseña` |
+
+---
+
+## 10. Despliegue y arranque automático
+
+### Inicio del servidor
+
+1. La tarea programada `task/Iniciar AlexaController.xml` lanza la API al iniciar sesión en Windows
+2. El script `cmd/IniciarNGROK.cmd` abre el túnel ngrok con Basic Auth
+3. La API usa un `Mutex` global para evitar instancias duplicadas
+
+### Compilar para producción
+
+```bash
+dotnet build --configuration Release
+```
+
+El ejecutable se genera en `AlexaController/bin/Release/net10.0-windows/`.
+
+### GameController APK
+
+```bash
+cd GameController
+./gradlew assembleRelease
+```
+
+El APK queda en `GameController/app/build/outputs/apk/release/gamecontroller-<version>.apk`.
+
+---
+
+## 11. Registro (logs)
+
+Serilog escribe en dos destinos simultáneos:
+
+| Destino | Configuración |
+|---------|--------------|
+| Consola | `[HH:mm:ss LVL] mensaje` |
+| Archivo | `logs/AlexaController<YYYYMMDD>.log` (rolling diario, 7 archivos) |
+
+El archivo usa `shared: true` para permitir lecturas y truncado concurrente desde `LogController`.
+
+Nivel mínimo: `Information` (ASP.NET Core internals: `Warning`).
+
+---
+
+## 12. Posibles incidencias
+
+| Síntoma | Causa probable | Solución |
+|---------|---------------|----------|
+| Alexa dice "no puedo conectar" | ngrok no está corriendo | Ejecutar `cmd/IniciarNGROK.cmd` |
+| Error 401 en GameController | Credenciales incorrectas | Revisar Ajustes → usuario/contraseña |
+| El modo juegos no detiene todos los procesos | Nombre de proceso incorrecto | Revisar `Procesos` en `appsettings.json` |
+| El monitor no cambia al modo juegos | Win32 `SetDisplayConfig` falla | Revisar que `MonitorHelper` detecta el monitor secundario |
+| Log vacío en GameController | No hay actividad o log borrado | Ejecutar alguna acción desde Alexa/GameController |
+| SSL error en GameController | Certificado del túnel inválido | Activar "Aceptar certificados inválidos" en Ajustes |

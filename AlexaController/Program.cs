@@ -15,12 +15,14 @@
 // License along with this library; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
+using System.Reflection;
 using AlexaController.Gestores;
 using AlexaController.Helpers;
 using AlexaController.Seguridad;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using Serilog.Filters;
 
 const string MutexName = "Global\\AlexaController_SingleInstance";
 using var mutex = new Mutex(true, MutexName, out bool esNuevaInstancia);
@@ -32,10 +34,20 @@ if (!esNuevaInstancia)
 
 var builder = WebApplication.CreateBuilder(args);
 
+var assembly = Assembly.GetExecutingAssembly();
+var logPath = Path.Combine(
+    AppContext.BaseDirectory,
+    assembly.GetName().Name + ".log");
+if (File.Exists(logPath)) File.Delete(logPath);
+
+const string LogTemplate = "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}";
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .Enrich.WithMachineName()
-    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .WriteTo.Console(outputTemplate: LogTemplate)
+    .WriteTo.Logger(lc => lc
+        .Filter.ByIncludingOnly(Matching.FromSource("AlexaController"))
+        .WriteTo.File(logPath, outputTemplate: LogTemplate, shared: true))
     .CreateLogger();
 builder.Host.UseSerilog();
 
