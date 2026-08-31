@@ -133,26 +133,78 @@
                     android:text="@string/grupo_otros"
                     android:textAppearance="?attr/textAppearanceLabelLarge" />
 
-                <LinearLayout
+                <GridLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center">
+                    android:columnCount="2">
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_cerrar_retroarch"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="8dp"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_columnWeight="1"
+                        android:layout_gravity="fill_horizontal"
+                        android:layout_marginEnd="4dp"
+                        android:layout_marginBottom="8dp"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:paddingStart="4dp"
+                        android:paddingEnd="4dp"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:textSize="12sp"
                         android:text="@string/accion_cerrar_retroarch" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_reconectar_mando"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_columnWeight="1"
+                        android:layout_gravity="fill_horizontal"
+                        android:layout_marginStart="4dp"
+                        android:layout_marginBottom="8dp"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:paddingStart="4dp"
+                        android:paddingEnd="4dp"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:textSize="12sp"
                         android:text="@string/accion_reconectar_mando" />
 
-                </LinearLayout>
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_enfocar_juego"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_columnWeight="1"
+                        android:layout_gravity="fill_horizontal"
+                        android:layout_marginEnd="4dp"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:paddingStart="4dp"
+                        android:paddingEnd="4dp"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:textSize="12sp"
+                        android:text="@string/accion_enfocar_juego" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_detener_juego"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_columnWeight="1"
+                        android:layout_gravity="fill_horizontal"
+                        android:layout_marginStart="4dp"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:paddingStart="4dp"
+                        android:paddingEnd="4dp"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:textSize="12sp"
+                        android:text="@string/accion_detener_juego" />
+
+                </GridLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

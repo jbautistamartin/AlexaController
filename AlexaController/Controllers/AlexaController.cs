@@ -33,6 +33,7 @@ namespace AlexaController.Controllers
         private readonly SteamHelper _steamHelper;
         private readonly VolumeHelper _volumeHelper;
         private readonly JoypadHelper _joypadHelper;
+        private readonly JuegoActivoHelper _juegoActivoHelper;
 
         public AlexaController(
             ILogger<AlexaController> logger,
@@ -41,7 +42,8 @@ namespace AlexaController.Controllers
             ProcesosHelper procesosHelper,
             SteamHelper steamHelper,
             VolumeHelper volumeHelper,
-            JoypadHelper joypadHelper)
+            JoypadHelper joypadHelper,
+            JuegoActivoHelper juegoActivoHelper)
         {
             _logger = logger;
             _equipoHelper = equipoHelper;
@@ -50,6 +52,7 @@ namespace AlexaController.Controllers
             _steamHelper = steamHelper;
             _volumeHelper = volumeHelper;
             _joypadHelper = joypadHelper;
+            _juegoActivoHelper = juegoActivoHelper;
         }
 
         private string UsuarioActual => User.Identity?.Name ?? "desconocido";
@@ -201,6 +204,44 @@ namespace AlexaController.Controllers
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error al detener el Modo Juegos.");
+                }
+            });
+            return Ok();
+        }
+
+        [HttpGet(nameof(EnfocarJuego))]
+        public IActionResult EnfocarJuego()
+        {
+            var usuario = UsuarioActual;
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    _logger.LogInformation("Enfocando juego... (usuario: {Usuario})", usuario);
+                    await _juegoActivoHelper.EnfocarJuegoAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error al enfocar el juego.");
+                }
+            });
+            return Ok();
+        }
+
+        [HttpGet(nameof(DetenerJuego))]
+        public IActionResult DetenerJuego()
+        {
+            var usuario = UsuarioActual;
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    _logger.LogInformation("Deteniendo juego... (usuario: {Usuario})", usuario);
+                    await _juegoActivoHelper.DetenerJuegoAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error al detener el juego.");
                 }
             });
             return Ok();

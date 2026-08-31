@@ -25,6 +25,8 @@
     <string name="accion_detener_modo_juegos">Detener</string>
     <string name="accion_cerrar_retroarch">Cerrar RetroArch</string>
     <string name="accion_reconectar_mando">Reconectar Mando</string>
+    <string name="accion_enfocar_juego">Enfocar Juego</string>
+    <string name="accion_detener_juego">Detener Juego</string>
     <string name="accion_subir_volumen">Subir</string>
     <string name="accion_bajar_volumen">Bajar</string>
     <string name="accion_silenciar">Silenciar</string>
@@ -38,6 +40,7 @@
     <string name="confirmar_cerrar_steam">¿Seguro que quieres cerrar Steam?</string>
     <string name="confirmar_reiniciar_steam">¿Seguro que quieres reiniciar Steam?</string>
     <string name="confirmar_detener_juegos">¿Seguro que quieres detener el modo juegos?</string>
+    <string name="confirmar_detener_juego">¿Seguro que quieres cerrar el juego en marcha?</string>
 
     <!-- Settings -->
     <string name="settings_url_label">URL del servidor</string>

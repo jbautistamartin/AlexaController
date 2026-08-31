@@ -42,6 +42,8 @@ INTENTS = {
     "CerrarRetroarchIntent":    "cerrarretroarch",
     "IniciarModoJuegosIntent":  "iniciarmodojuegos",
     "DetenerModoJuegosIntent":  "detenermodojuegos",
+    "EnfocarJuegoIntent":       "enfocarjuego",
+    "DetenerJuegoIntent":       "detenerjuego",
     "SubirVolumenIntent":       "subirvolumen",
     "BajarVolumenIntent":       "bajarvolumen",
     "SilenciarIntent":          "silenciar",
@@ -56,6 +58,8 @@ MENSAJES_OK = {
     "cerrarretroarch":    "Emulador cerrado.",
     "iniciarmodojuegos":  "Modo juegos activando.",
     "detenermodojuegos":  "Modo juegos desactivado.",
+    "enfocarjuego":       "Ahí tienes el juego.",
+    "detenerjuego":       "Juego detenido. Vuelves a Steam.",
     "subirvolumen":       "Volumen subido.",
     "bajarvolumen":       "Volumen bajado.",
     "silenciar":          "Silenciado.",
@@ -94,7 +98,8 @@ def lambda_handler(event, context):
 
     if intent_name == "AMAZON.HelpIntent":
         ayuda = ("Puedo apagar o reiniciar el equipo, controlar Steam y RetroArch, "
-                 "activar el modo juegos, ajustar el volumen y consultar el estado. ¿Qué quieres hacer?")
+                 "activar el modo juegos, enfocar o detener el juego en marcha, "
+                 "ajustar el volumen y consultar el estado. ¿Qué quieres hacer?")
         return build_response(ayuda, IMG_INIT, False, supports_apl, session_attrs)
 
     if intent_name not in INTENTS:

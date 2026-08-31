@@ -30,19 +30,21 @@ This is a voice-controlled PC automation system. An Alexa skill (in Spanish, inv
 
 **Core projects:**
 - `AlexaController/` — .NET 10 API (the main project)
-- `AlexaControllerSkill/intents.json` — Alexa skill interaction model (8 custom intents)
+- `AlexaControllerSkill/intents.json` — Alexa skill interaction model (custom intents)
 - `lambda/AlexaController/src/lambda_function.py` — AWS Lambda handler with APL support
 
 ## Key Components
 
 **`Controllers/AlexaController.cs`** — Single controller with `[Authorize]` on all actions. Routes: `GET /alexa/{action}`. Immediately returns HTTP 200 and runs the real work in a background `Task.Run`. The `/swagger` path is explicitly excluded from authentication middleware.
 
-**Endpoints:** `ApagarEquipo`, `ReiniciarEquipo`, `IniciarSteam`, `CerrarSteam`, `ReiniciarSteam`, `CerrarRetroArch`, `IniciarModoJuegos`, `DetenerModoJuegos`, `SubirVolumen`, `BajarVolumen`, `Silenciar`.
+**Endpoints:** `ApagarEquipo`, `ReiniciarEquipo`, `IniciarSteam`, `CerrarSteam`, `ReiniciarSteam`, `CerrarRetroArch`, `IniciarModoJuegos`, `DetenerModoJuegos`, `EnfocarJuego`, `DetenerJuego`, `SubirVolumen`, `BajarVolumen`, `Silenciar`.
 
 **`Helpers/`** — Each helper wraps a single concern:
 - `EquipoHelper` — shutdown/restart via `shutdown /s /t 0` / `shutdown /r /t 0`
 - `SteamHelper` — start/stop/restart Steam (kills process tree on close); Steam path from `SteamPath` in config
 - `ProcesosHelper` — kill RetroArch (and its child processes)
+- `VentanasHelper` — brings a window to the foreground on any monitor (restore + TOPMOST + `SetForegroundWindow`); used by `SteamHelper` and `JuegoActivoHelper`
+- `JuegoActivoHelper` — finds the game Steam launched (process whose executable path matches `PatronesRutaJuegos` (`steamapps\common`, `C:\Games`), with a visible window and the most recent start time) to focus it (`EnfocarJuego`) or kill it and return focus to Steam (`DetenerJuego`); falls back to focusing Steam when no game is running
 - `MonitorHelper` — reads and switches Windows display topology (internal/clone/extend/external) via `QueryDisplayConfig` / `SetDisplayConfig` Win32 P/Invoke
 - `VolumeHelper` — raises/lowers/mutes system volume via Win32 `keybd_event` (VK_VOLUME_UP/DOWN/MUTE); step count from `VolumenPasos` in config (default: 3)
 - `JuegosHelper` — orchestrates "gaming mode": saves monitor topology, switches to single monitor, stops background apps + disables Windows services (lists from `Procesos`/`Servicios` in `appsettings.json`), starts Steam; reverses everything on stop
@@ -60,6 +62,8 @@ This is a voice-controlled PC automation system. An Alexa skill (in Spanish, inv
 - `Kestrel:Endpoints:Http:Url` — hardcoded to `http://localhost:5780`
 - `SteamPath` — path to Steam installation (default: `C:\Program Files (x86)\Steam\`)
 - `VolumenPasos` — number of key presses per volume up/down command (default: `3`)
+- `PatronesRutaJuegos` — path fragments that identify a game executable (default: `steamapps\common`, `C:\Games`)
+- `ProcesosJuegoExcluidos` — extra process names never treated as the active game (added to the built-in list)
 - `Procesos` — JSON array of process names to kill when entering gaming mode
 - `Servicios` — JSON array of Windows service names to stop/disable when entering gaming mode
 

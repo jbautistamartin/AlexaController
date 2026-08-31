@@ -69,6 +69,10 @@ class HomeFragment : Fragment() {
                 confirmar(R.string.confirmar_detener_juegos) { viewModel.ejecutar(Accion.DETENER_MODO_JUEGOS) }
             }
             btnCerrarRetroarch.setOnClickListener { viewModel.ejecutar(Accion.CERRAR_RETROARCH) }
+            btnEnfocarJuego.setOnClickListener { viewModel.ejecutar(Accion.ENFOCAR_JUEGO) }
+            btnDetenerJuego.setOnClickListener {
+                confirmar(R.string.confirmar_detener_juego) { viewModel.ejecutar(Accion.DETENER_JUEGO) }
+            }
             btnReconectarMando.setOnClickListener { viewModel.ejecutar(Accion.RECONECTAR_MANDO) }
             btnSubirVolumen.setOnClickListener { viewModel.ejecutar(Accion.SUBIR_VOLUMEN) }
             btnBajarVolumen.setOnClickListener { viewModel.ejecutar(Accion.BAJAR_VOLUMEN) }
@@ -122,6 +126,8 @@ class HomeFragment : Fragment() {
             btnIniciarModoJuegos.isEnabled = habilitar
             btnDetenerModoJuegos.isEnabled = habilitar
             btnCerrarRetroarch.isEnabled = habilitar
+            btnEnfocarJuego.isEnabled = habilitar
+            btnDetenerJuego.isEnabled = habilitar
             btnReconectarMando.isEnabled = habilitar
             btnSubirVolumen.isEnabled = habilitar
             btnBajarVolumen.isEnabled = habilitar

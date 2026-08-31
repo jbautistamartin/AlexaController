@@ -16,7 +16,6 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 
 namespace AlexaController.Helpers
 {
@@ -24,25 +23,18 @@ namespace AlexaController.Helpers
     {
         private readonly ILogger<SteamHelper> _logger;
         private readonly ProcesosHelper _procesosHelper;
+        private readonly VentanasHelper _ventanasHelper;
         private readonly string _steamPath;
 
-        private static readonly IntPtr HWND_TOPMOST = new(-1);
-        private static readonly IntPtr HWND_NOTOPMOST = new(-2);
-        private const uint SWP_NOMOVE = 0x0002;
-        private const uint SWP_NOSIZE = 0x0001;
-        private const uint SWP_SHOWWINDOW = 0x0040;
-        private const int SW_RESTORE = 9;
-
-        [DllImport("user32.dll")] private static extern bool SetForegroundWindow(IntPtr hWnd);
-
-        [DllImport("user32.dll")] private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-
-        [DllImport("user32.dll")] private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags);
-
-        public SteamHelper(ILogger<SteamHelper> logger, ProcesosHelper processHelper, IConfiguration config)
+        public SteamHelper(
+            ILogger<SteamHelper> logger,
+            ProcesosHelper processHelper,
+            VentanasHelper ventanasHelper,
+            IConfiguration config)
         {
             _logger = logger;
             _procesosHelper = processHelper;
+            _ventanasHelper = ventanasHelper;
             _steamPath = config["SteamPath"] ?? @"C:\Program Files (x86)\Steam\";
         }
 
@@ -78,20 +70,27 @@ namespace AlexaController.Helpers
                 if (hWnd == IntPtr.Zero)
                     continue;
 
-                ShowWindow(hWnd, SW_RESTORE);
-                // TOPMOST garantiza que esté por encima de cualquier diálogo
-                SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-                SetForegroundWindow(hWnd);
-                _logger.LogInformation("Steam colocado al frente (TOPMOST).");
-
                 // Mantiene TOPMOST 8 segundos para superar diálogos tardíos, luego lo quita
-                await Task.Delay(8000);
-                SetWindowPos(hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-                _logger.LogInformation("Steam: TOPMOST eliminado, comportamiento normal restaurado.");
+                await _ventanasHelper.TraerAlFrenteAsync(hWnd, "Steam", msTopmost: 8000);
                 return;
             }
 
             _logger.LogWarning("No se encontró la ventana principal de Steam en 60 segundos.");
+        }
+
+        /// <summary>
+        /// Trae al frente la ventana principal de Steam si está en ejecución.
+        /// </summary>
+        public async Task EnfocarSteamAsync()
+        {
+            var hWnd = BuscarVentanaPrincipalSteam();
+            if (hWnd == IntPtr.Zero)
+            {
+                _logger.LogWarning("No se encontró la ventana principal de Steam.");
+                return;
+            }
+
+            await _ventanasHelper.TraerAlFrenteAsync(hWnd, "Steam");
         }
 
         private static IntPtr BuscarVentanaPrincipalSteam()

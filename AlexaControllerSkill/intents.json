@@ -4,7 +4,7 @@
             "invocationName": "control de equipo",
             "intents": [
                 {
-                    "name": "apagarEquipoIntent",
+                    "name": "ApagarEquipoIntent",
                     "slots": [],
                     "samples": [
                         "apaga el equipo",
@@ -75,6 +75,33 @@
                         "detener modo juegos",
                         "apagar modo juegos",
                         "desactivar modo juegos"
+                    ]
+                },
+                {
+                    "name": "EnfocarJuegoIntent",
+                    "slots": [],
+                    "samples": [
+                        "enfoca el juego",
+                        "enfocar el juego",
+                        "vuelve al juego",
+                        "volver al juego",
+                        "ir al juego",
+                        "muestra el juego",
+                        "pon el juego delante",
+                        "trae el juego al frente"
+                    ]
+                },
+                {
+                    "name": "DetenerJuegoIntent",
+                    "slots": [],
+                    "samples": [
+                        "detén el juego",
+                        "detener el juego",
+                        "cierra el juego",
+                        "cerrar el juego",
+                        "para el juego",
+                        "salir del juego",
+                        "sal del juego"
                     ]
                 },
                 {
