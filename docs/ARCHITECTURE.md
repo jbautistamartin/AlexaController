@@ -30,16 +30,16 @@ Acciones disponibles:
 |--------|-------------|
 | `ApagarEquipo` | Apaga el PC (`shutdown /s /t 0`) |
 | `ReiniciarEquipo` | Reinicia el PC (`shutdown /r /t 0`) |
-| `IniciarSteam` | Lanza Steam |
+| `IniciarSteam` | Lanza Steam (en Big Picture si `SteamBigPicture`) |
 | `CerrarSteam` | Cierra Steam (mata árbol de procesos) |
 | `ReiniciarSteam` | Cierra y vuelve a abrir Steam |
 | `CerrarRetroArch` | Cierra RetroArch y sus hijos |
-| `IniciarModoJuegos` | Activa el modo juegos (monitor único, parar procesos, iniciar Steam) |
+| `IniciarModoJuegos` | Activa el modo juegos (parar procesos, cerrar ventanas, monitor único, iniciar Steam) |
 | `DetenerModoJuegos` | Revierte el modo juegos |
 | `SubirVolumen` | Sube el volumen N pasos |
 | `BajarVolumen` | Baja el volumen N pasos |
 | `Silenciar` | Silencia / activa el sonido |
-| `ReconectarMando` | Reconecta el mando vía PowerShell |
+| `ReconectarMando` | Fuerza una reconexión por software del receptor del mando (PnP) |
 
 Endpoints adicionales (solo desde GameController):
 
@@ -118,11 +118,13 @@ AlexaController/
 │   └── LogController.cs       Endpoints /log/Obtener y /log/Borrar
 ├── Helpers/
 │   ├── EquipoHelper.cs        shutdown / restart
-│   ├── SteamHelper.cs         iniciar / cerrar / reiniciar Steam
+│   ├── SteamHelper.cs         iniciar / cerrar / reiniciar Steam (Big Picture)
 │   ├── ProcesosHelper.cs      cerrar RetroArch (árbol de procesos)
+│   ├── VentanasHelper.cs      enfocar ventanas y cerrarlas todas (Win32)
+│   ├── JuegoActivoHelper.cs   localiza, enfoca y detiene el juego lanzado por Steam
 │   ├── MonitorHelper.cs       QueryDisplayConfig / SetDisplayConfig (Win32)
 │   ├── VolumeHelper.cs        keybd_event VK_VOLUME_* (Win32)
-│   ├── JoypadHelper.cs        PowerShell – reconexión del mando
+│   ├── JoypadHelper.cs        PowerShell / pnputil – reconexión del mando
 │   └── JuegosHelper.cs        orquesta el modo juegos
 ├── Gestores/
 │   ├── ProgramManager.cs      mata procesos y guarda rutas para relanzarlos
@@ -135,11 +137,16 @@ AlexaController/
 ### Modo juegos (`JuegosHelper`)
 
 Al **iniciar**:
-1. Guarda topología de monitores actual
-2. Cambia a monitor único (`SetDisplayConfig`)
-3. Mata los procesos listados en `Procesos` (guarda sus rutas)
-4. Detiene los servicios listados en `Servicios`
-5. Inicia Steam
+1. Mata los procesos listados en `Procesos` (guarda sus rutas)
+2. Cierra el resto de ventanas de usuario (`VentanasHelper.CerrarTodasLasVentanasAsync`)
+3. Guarda topología de monitores actual y cambia a monitor único (`SetDisplayConfig`)
+4. Reconecta el mando
+5. Inicia Steam (en Big Picture)
+6. Detiene los servicios listados en `Servicios`
+
+El orden importa: los procesos de la lista se matan **antes** de cerrar ventanas para poder
+guardar sus rutas y relanzarlos al salir; los servicios se detienen al final para no
+interferir con el arranque de Steam ni con la reinstalación PnP del mando.
 
 Al **detener** (o al cerrar la aplicación):
 1. Cierra Steam
@@ -288,12 +295,47 @@ com.capicua.gamecontroller
   },
   "Kestrel": { "Endpoints": { "Http": { "Url": "http://localhost:5780" } } },
   "SteamPath": "C:\\Program Files (x86)\\Steam\\",
+  "SteamArgumentos": "-cef-disable-sandbox",
+  "SteamBigPicture": true,
   "JoypadFriendlyName": "F710",
+  "JoypadIdHardware": "VID_046D&PID_C21F",
+  "JoypadReiniciarConcentradorUsb": true,
+  "VentanasExcluidas": [],
+  "VentanasEsperaCierreMs": 5000,
   "VolumenPasos": 3,
   "Procesos": [ "GoogleDriveFS", "OneDrive", "Teams", ... ],
-  "Servicios": [ "WSearch", "wuauserv", "DiagTrack", ... ]
+  "Servicios": [ "WSearch", "DiagTrack", ... ]
 }
 ```
+
+| Clave | Descripción |
+|---|---|
+| `SteamArgumentos` | Argumentos base de `steam.exe` |
+| `SteamBigPicture` | Añade `-gamepadui` para arrancar en Big Picture. Si Steam ya está abierto, se le pide el cambio con `steam://open/bigpicture` |
+| `JoypadIdHardware` | Fragmento del identificador de hardware del receptor. Permite localizarlo aunque Windows no le haya dado nombre descriptivo por haber fallado la instalación |
+| `JoypadReiniciarConcentradorUsb` | Cicla también el concentrador USB padre al reconectar el mando: es lo más parecido a desenchufarlo físicamente y lo único que fuerza una relectura completa de descriptores. Afecta al resto de dispositivos de ese concentrador |
+| `Servicios` | Servicios que se detienen en modo juegos. No debe incluir `wuauserv`: si el receptor del mando se reenumera con el modo juegos activo, Windows Update tiene que poder aportar el driver |
+| `VentanasExcluidas` | Procesos cuyas ventanas no se cierran al entrar en modo juegos. Se suman a la lista interna (explorador de Windows, Steam, JoyToKey y la propia aplicación) |
+| `VentanasEsperaCierreMs` | Espera máxima a que las ventanas se cierren; las que no lo hagan se minimizan |
+
+### Nota: el receptor F710 y el problema PnP 28
+
+El receptor del **Logitech F710 en modo X** (`USB\VID_046D&PID_C21F`) no empareja por VID/PID:
+`C:\Windows\INF\xusb22.inf` sólo declara los identificadores de Microsoft y los IDs compatibles
+`USB\MS_COMP_XUSB10` / `XUSB20`, que Windows fabrica leyendo el **descriptor MS OS** del propio
+dispositivo (vendor code cacheado en `HKLM\SYSTEM\CurrentControlSet\Control\usbflags\VVVVPPPPRRRR`).
+
+Si esa lectura falla durante la enumeración, el nodo nace sin ningún ID compatible que empareje →
+**problema 28** (`CM_PROB_FAILED_INSTALL`) y `ConfigFlags = 0x40` (`CONFIGFLAG_FAILEDINSTALL`).
+Con ese bit puesto Windows ya no reintenta la instalación, así que reenumerar o habilitar el
+dispositivo no arregla nada: sólo un replug físico (reset de puerto + nodo nuevo) lo resucita.
+
+Por eso `ReconectarMando` hace, en este orden: limpiar `ConfigFlags`, eliminar los nodos fallidos
+con `pnputil /remove-device`, borrar la caché `usbflags` del descriptor MS OS, ciclar el
+concentrador USB padre y sólo entonces `pnputil /scan-devices`. Si aun así el resultado sigue
+siendo problema 28, la solución fiable es **poner el interruptor del mando en modo D**
+(`PID_C219`, driver HID de serie, sin descargas) o enchufar el receptor directamente a la placa
+en lugar de a un concentrador externo.
 
 ### Variables de entorno Lambda
 

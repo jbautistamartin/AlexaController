@@ -11,7 +11,7 @@ Permite controlar un PC de forma remota usando la voz o botones en el móvil:
 - Apagar y reiniciar el equipo
 - Iniciar, cerrar y reiniciar Steam
 - Cerrar RetroArch
-- Activar y desactivar el **modo juegos** — cambia a monitor único, detiene procesos y servicios en segundo plano, inicia Steam
+- Activar y desactivar el **modo juegos** — cierra las ventanas abiertas, cambia a monitor único, detiene procesos y servicios en segundo plano, inicia Steam en Big Picture
 - Subir, bajar y silenciar el volumen
 - Reconectar el mando
 - Ver y borrar el **log del servidor** desde el móvil
@@ -77,9 +77,16 @@ docs/                     Documentación técnica
     "Password": "tu_contraseña"
   },
   "SteamPath": "C:\\Program Files (x86)\\Steam\\",
+  "SteamBigPicture": true,
+  "VentanasExcluidas": [],
   "VolumenPasos": 3
 }
 ```
+
+`SteamBigPicture` arranca Steam con `-gamepadui`. `VentanasExcluidas` lista los procesos cuyas
+ventanas **no** se cierran al entrar en modo juegos (además del explorador de Windows, Steam,
+JoyToKey y la propia aplicación). El resto de claves están documentadas en
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 Las credenciales deben coincidir con las configuradas en ngrok (`--basic-auth "usuario:contraseña"`).
 

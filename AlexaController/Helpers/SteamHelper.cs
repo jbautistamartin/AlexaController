@@ -25,6 +25,8 @@ namespace AlexaController.Helpers
         private readonly ProcesosHelper _procesosHelper;
         private readonly VentanasHelper _ventanasHelper;
         private readonly string _steamPath;
+        private readonly string _argumentos;
+        private readonly bool _bigPicture;
 
         public SteamHelper(
             ILogger<SteamHelper> logger,
@@ -36,7 +38,11 @@ namespace AlexaController.Helpers
             _procesosHelper = processHelper;
             _ventanasHelper = ventanasHelper;
             _steamPath = config["SteamPath"] ?? @"C:\Program Files (x86)\Steam\";
+            _argumentos = config["SteamArgumentos"] ?? "-cef-disable-sandbox";
+            _bigPicture = config.GetValue("SteamBigPicture", true);
         }
+
+        private string RutaSteamExe => Path.Combine(_steamPath, "steam.exe");
 
         public async Task IniciarSteamAsync()
         {
@@ -46,17 +52,53 @@ namespace AlexaController.Helpers
                 _logger.LogInformation("JoyToKey iniciado.");
             }
 
-            var startInfo = new ProcessStartInfo
+            // -gamepadui arranca directamente en Big Picture (interfaz de mando).
+            var argumentos = _bigPicture ? $"{_argumentos} -gamepadui".Trim() : _argumentos;
+
+            if (Process.GetProcessesByName("steam").Any())
             {
-                FileName = Path.Combine(_steamPath, "steam.exe"),
-                WorkingDirectory = _steamPath,
-                Arguments = "-cef-disable-sandbox"
-            };
-            Process.Start(startInfo);
-            _logger.LogInformation("Steam iniciado desde '{Path}'.", _steamPath);
+                // Steam ya está en marcha: los argumentos de arranque se ignoran,
+                // hay que pedirle el cambio a Big Picture por su protocolo.
+                _logger.LogInformation("Steam ya estaba en ejecución.");
+                if (_bigPicture)
+                    AbrirBigPicture();
+            }
+            else
+            {
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = RutaSteamExe,
+                    WorkingDirectory = _steamPath,
+                    Arguments = argumentos
+                };
+                Process.Start(startInfo);
+                _logger.LogInformation("Steam iniciado desde '{Path}' con argumentos '{Args}'.", _steamPath, argumentos);
+            }
 
             // Sin await: no bloquea el inicio del modo juegos
             _ = Task.Run(ColocarSteamAlFrenteAsync);
+        }
+
+        /// <summary>
+        /// Fuerza el modo Big Picture en una instancia de Steam que ya está arrancada.
+        /// </summary>
+        public void AbrirBigPicture()
+        {
+            try
+            {
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = RutaSteamExe,
+                    WorkingDirectory = _steamPath,
+                    Arguments = "steam://open/bigpicture"
+                };
+                Process.Start(startInfo);
+                _logger.LogInformation("Solicitado el modo Big Picture a Steam.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al abrir el modo Big Picture.");
+            }
         }
 
         private async Task ColocarSteamAlFrenteAsync()
@@ -93,13 +135,23 @@ namespace AlexaController.Helpers
             await _ventanasHelper.TraerAlFrenteAsync(hWnd, "Steam");
         }
 
+        /// <summary>
+        /// En Big Picture (-gamepadui) la ventana pertenece a steamwebhelper, no a steam.exe,
+        /// así que hay que buscar en ambos procesos.
+        /// </summary>
         private static IntPtr BuscarVentanaPrincipalSteam()
         {
-            foreach (var proc in Process.GetProcessesByName("steam"))
+            foreach (var nombre in new[] { "steamwebhelper", "steam" })
             {
-                if (proc.MainWindowHandle != IntPtr.Zero &&
-                    proc.MainWindowTitle.Contains("Steam", StringComparison.OrdinalIgnoreCase))
-                    return proc.MainWindowHandle;
+                foreach (var proc in Process.GetProcessesByName(nombre))
+                {
+                    if (proc.MainWindowHandle == IntPtr.Zero) continue;
+
+                    var titulo = proc.MainWindowTitle;
+                    if (titulo.Contains("Steam", StringComparison.OrdinalIgnoreCase) ||
+                        titulo.Contains("Big Picture", StringComparison.OrdinalIgnoreCase))
+                        return proc.MainWindowHandle;
+                }
             }
             return IntPtr.Zero;
         }
@@ -111,6 +163,10 @@ namespace AlexaController.Helpers
             _logger.LogInformation("JoyToKey cerrado.");
 
             foreach (var proceso in Process.GetProcessesByName("steam"))
+                await _procesosHelper.KillProcessAndChildrenAsync(proceso.Id);
+
+            // En Big Picture steamwebhelper puede sobrevivir a su proceso padre.
+            foreach (var proceso in Process.GetProcessesByName("steamwebhelper"))
                 await _procesosHelper.KillProcessAndChildrenAsync(proceso.Id);
         }
 

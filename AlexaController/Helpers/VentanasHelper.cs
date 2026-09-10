@@ -15,16 +15,21 @@
 // License along with this library; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
+using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace AlexaController.Helpers
 {
     /// <summary>
-    /// Traslada ventanas al primer plano, sea cual sea el monitor en el que estén.
+    /// Traslada ventanas al primer plano, sea cual sea el monitor en el que estén,
+    /// y cierra las ventanas de usuario para dejar el escritorio limpio.
     /// </summary>
     public class VentanasHelper
     {
         private readonly ILogger<VentanasHelper> _logger;
+        private readonly HashSet<string> _procesosExcluidos;
+        private readonly int _msEsperaCierre;
 
         private static readonly IntPtr HWND_TOPMOST = new(-1);
         private static readonly IntPtr HWND_NOTOPMOST = new(-2);
@@ -32,8 +37,31 @@ namespace AlexaController.Helpers
         private const uint SWP_NOSIZE = 0x0001;
         private const uint SWP_SHOWWINDOW = 0x0040;
         private const int SW_RESTORE = 9;
+        private const int SW_MINIMIZE = 6;
         private const byte VK_MENU = 0x12;
         private const uint KEYEVENTF_KEYUP = 0x0002;
+        private const uint WM_CLOSE = 0x0010;
+        private const int GWL_EXSTYLE = -20;
+        private const int WS_EX_TOOLWINDOW = 0x00000080;
+        private const uint GW_OWNER = 4;
+        private const int DWMWA_CLOAKED = 14;
+
+        // Ventanas del propio shell de Windows: nunca deben cerrarse.
+        private static readonly HashSet<string> ClasesDelShell = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "Progman", "WorkerW", "Shell_TrayWnd", "Shell_SecondaryTrayWnd",
+            "Button", "TaskListThumbnailWnd", "MultitaskingViewFrame",
+            "Windows.UI.Core.CoreWindow", "ForegroundStaging", "XamlExplorerHostIslandWindow"
+        };
+
+        // Procesos que nunca deben perder sus ventanas al entrar en modo juegos.
+        private static readonly string[] ProcesosExcluidosBase =
+        {
+            "explorer", "steam", "steamwebhelper", "JoyToKey", "SearchHost", "ShellExperienceHost",
+            "StartMenuExperienceHost", "TextInputHost", "ApplicationFrameHost", "SystemSettings"
+        };
+
+        private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
 
         [DllImport("user32.dll")] private static extern bool SetForegroundWindow(IntPtr hWnd);
 
@@ -43,12 +71,40 @@ namespace AlexaController.Helpers
 
         [DllImport("user32.dll")] private static extern bool IsIconic(IntPtr hWnd);
 
+        [DllImport("user32.dll")] private static extern bool IsWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll")] private static extern bool IsWindowVisible(IntPtr hWnd);
+
+        [DllImport("user32.dll")] private static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+
+        [DllImport("user32.dll")] private static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern int GetWindowTextW(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern int GetClassNameW(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern int GetWindowLongW(IntPtr hWnd, int nIndex);
+
+        [DllImport("user32.dll")] private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+        [DllImport("user32.dll")] private static extern bool PostMessageW(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
+        [DllImport("dwmapi.dll")] private static extern int DwmGetWindowAttribute(IntPtr hWnd, int dwAttribute, out int pvAttribute, int cbAttribute);
+
         [DllImport("user32.dll", SetLastError = true)]
         private static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
 
-        public VentanasHelper(ILogger<VentanasHelper> logger)
+        public VentanasHelper(ILogger<VentanasHelper> logger, IConfiguration config)
         {
             _logger = logger;
+            _msEsperaCierre = config.GetValue("VentanasEsperaCierreMs", 5000);
+
+            _procesosExcluidos = new HashSet<string>(ProcesosExcluidosBase, StringComparer.OrdinalIgnoreCase)
+            {
+                Process.GetCurrentProcess().ProcessName
+            };
+            foreach (var nombre in config.GetSection("VentanasExcluidas").Get<List<string>>() ?? new())
+                _procesosExcluidos.Add(nombre);
         }
 
         /// <summary>
@@ -85,5 +141,109 @@ namespace AlexaController.Helpers
                 _logger.LogInformation("'{Descripcion}': TOPMOST eliminado, comportamiento normal restaurado.", descripcion);
             }
         }
+
+        /// <summary>
+        /// Cierra ordenadamente (WM_CLOSE) las ventanas visibles de usuario para dejar el
+        /// escritorio limpio antes del modo juegos. Respeta el shell de Windows, Steam,
+        /// JoyToKey, la propia aplicación y lo indicado en <c>VentanasExcluidas</c>.
+        /// Las que no se cierren a tiempo (por ejemplo, con un diálogo de cambios sin guardar)
+        /// se minimizan para que no estorben.
+        /// </summary>
+        /// <returns>Número de ventanas a las que se pidió el cierre.</returns>
+        public async Task<int> CerrarTodasLasVentanasAsync()
+        {
+            var ventanas = EnumerarVentanasCerrables();
+            if (ventanas.Count == 0)
+            {
+                _logger.LogInformation("No hay ventanas de usuario que cerrar.");
+                return 0;
+            }
+
+            _logger.LogInformation("Cerrando {Count} ventanas antes del modo juegos...", ventanas.Count);
+            foreach (var ventana in ventanas)
+            {
+                PostMessageW(ventana.Handle, WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+                _logger.LogInformation("Cierre solicitado a '{Titulo}' ({Proceso}).", ventana.Titulo, ventana.Proceso);
+            }
+
+            // Comprueba periódicamente en vez de esperar siempre el máximo.
+            var restantes = ventanas;
+            var espera = Stopwatch.StartNew();
+            while (espera.ElapsedMilliseconds < _msEsperaCierre)
+            {
+                await Task.Delay(250);
+                restantes = restantes.Where(v => IsWindow(v.Handle) && IsWindowVisible(v.Handle)).ToList();
+                if (restantes.Count == 0) break;
+            }
+
+            foreach (var ventana in restantes)
+            {
+                ShowWindow(ventana.Handle, SW_MINIMIZE);
+                _logger.LogWarning("'{Titulo}' ({Proceso}) no se cerró en {Ms} ms; se ha minimizado.",
+                    ventana.Titulo, ventana.Proceso, _msEsperaCierre);
+            }
+
+            _logger.LogInformation("Cierre de ventanas terminado: {Cerradas} cerradas, {Minimizadas} minimizadas.",
+                ventanas.Count - restantes.Count, restantes.Count);
+
+            return ventanas.Count;
+        }
+
+        private List<Ventana> EnumerarVentanasCerrables()
+        {
+            var resultado = new List<Ventana>();
+
+            EnumWindows((hWnd, _) =>
+            {
+                if (!IsWindowVisible(hWnd)) return true;
+
+                // Solo ventanas de nivel superior propias (sin dueño): descarta diálogos y paletas.
+                if (GetWindow(hWnd, GW_OWNER) != IntPtr.Zero) return true;
+
+                if ((GetWindowLongW(hWnd, GWL_EXSTYLE) & WS_EX_TOOLWINDOW) != 0) return true;
+
+                // Las apps UWP suspendidas siguen teniendo ventana visible, pero están "cloaked".
+                if (DwmGetWindowAttribute(hWnd, DWMWA_CLOAKED, out var oculta, sizeof(int)) == 0 && oculta != 0)
+                    return true;
+
+                var titulo = TextoDe(GetWindowTextW, hWnd);
+                if (string.IsNullOrWhiteSpace(titulo)) return true;
+
+                if (ClasesDelShell.Contains(TextoDe(GetClassNameW, hWnd))) return true;
+
+                var proceso = NombreDelProceso(hWnd);
+                if (proceso is null || _procesosExcluidos.Contains(proceso)) return true;
+
+                resultado.Add(new Ventana(hWnd, titulo, proceso));
+                return true;
+            }, IntPtr.Zero);
+
+            return resultado;
+        }
+
+        private static string TextoDe(Func<IntPtr, StringBuilder, int, int> funcion, IntPtr hWnd)
+        {
+            var buffer = new StringBuilder(512);
+            var longitud = funcion(hWnd, buffer, buffer.Capacity);
+            return longitud > 0 ? buffer.ToString() : string.Empty;
+        }
+
+        private static string? NombreDelProceso(IntPtr hWnd)
+        {
+            GetWindowThreadProcessId(hWnd, out var pid);
+            if (pid == 0) return null;
+
+            try
+            {
+                using var proceso = Process.GetProcessById((int)pid);
+                return proceso.ProcessName;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private sealed record Ventana(IntPtr Handle, string Titulo, string Proceso);
     }
 }

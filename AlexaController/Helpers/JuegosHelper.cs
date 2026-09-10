@@ -28,6 +28,7 @@ namespace AlexaController.Helpers
         private readonly ServiceManager _serviceManager;
         private readonly MonitorHelper _monitorHelper;
         private readonly JoypadHelper _joypadHelper;
+        private readonly VentanasHelper _ventanasHelper;
 
         private Dictionary<string, string> _procesosDetenidos = new();
         private List<string> _serviciosDesactivados = new();
@@ -38,7 +39,8 @@ namespace AlexaController.Helpers
             ProgramManager programManager,
             ServiceManager serviceManager,
             MonitorHelper monitorHelper,
-            JoypadHelper joypadHelper)
+            JoypadHelper joypadHelper,
+            VentanasHelper ventanasHelper)
         {
             _logger = logger;
             _steamHelper = steamHelper;
@@ -46,18 +48,23 @@ namespace AlexaController.Helpers
             _serviceManager = serviceManager;
             _monitorHelper = monitorHelper;
             _joypadHelper = joypadHelper;
+            _ventanasHelper = ventanasHelper;
         }
 
         internal async Task IniciarModoJuegosAsync()
         {
             var sw = Stopwatch.StartNew();
 
+            // Primero los programas de la lista: al matarlos se guarda su ruta para poder
+            // restaurarlos al salir. Después se cierra lo que quede abierto.
+            _procesosDetenidos = await _programManager.StopProgramsAsync();
+            await _ventanasHelper.CerrarTodasLasVentanasAsync();
+
             _monitorHelper.ActivarSoloMonitorPrincipal();
 
             await _joypadHelper.ReconectarMandoAsync();
             await _steamHelper.IniciarSteamAsync();
 
-            _procesosDetenidos = await _programManager.StopProgramsAsync();
             _serviciosDesactivados = await _serviceManager.DisableServicesAsync();
 
             _logger.LogInformation("Modo juegos iniciado completamente en {Elapsed:0.0}s.", sw.Elapsed.TotalSeconds);
