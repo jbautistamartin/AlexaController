@@ -22,6 +22,9 @@ namespace AlexaController.Helpers
 {
     public class JuegosHelper
     {
+        // Pasos que se anuncian en la ventana de progreso durante el arranque.
+        private const int TotalPasosInicio = 7;
+
         private readonly ILogger<JuegosHelper> _logger;
         private readonly SteamHelper _steamHelper;
         private readonly ProgramManager _programManager;
@@ -29,6 +32,7 @@ namespace AlexaController.Helpers
         private readonly MonitorHelper _monitorHelper;
         private readonly JoypadHelper _joypadHelper;
         private readonly VentanasHelper _ventanasHelper;
+        private readonly ProgresoHelper _progresoHelper;
 
         private Dictionary<string, string> _procesosDetenidos = new();
         private List<string> _serviciosDesactivados = new();
@@ -40,7 +44,8 @@ namespace AlexaController.Helpers
             ServiceManager serviceManager,
             MonitorHelper monitorHelper,
             JoypadHelper joypadHelper,
-            VentanasHelper ventanasHelper)
+            VentanasHelper ventanasHelper,
+            ProgresoHelper progresoHelper)
         {
             _logger = logger;
             _steamHelper = steamHelper;
@@ -49,30 +54,60 @@ namespace AlexaController.Helpers
             _monitorHelper = monitorHelper;
             _joypadHelper = joypadHelper;
             _ventanasHelper = ventanasHelper;
+            _progresoHelper = progresoHelper;
         }
 
         internal async Task IniciarModoJuegosAsync()
         {
             var sw = Stopwatch.StartNew();
 
-            // Primero los programas de la lista: al matarlos se guarda su ruta para poder
-            // restaurarlos al salir. Después se cierra lo que quede abierto.
-            _procesosDetenidos = await _programManager.StopProgramsAsync();
-            await _ventanasHelper.CerrarTodasLasVentanasAsync();
+            // El arranque completo ronda el minuto: sin esta ventana no hay forma de saber
+            // si está haciendo algo o se ha quedado colgado.
+            _progresoHelper.Iniciar("Modo juegos", TotalPasosInicio);
+            try
+            {
+                // Primero los programas de la lista: al matarlos se guarda su ruta para poder
+                // restaurarlos al salir. Después se cierra lo que quede abierto.
+                _progresoHelper.Paso("Cerrando los programas en segundo plano...");
+                _procesosDetenidos = await _programManager.StopProgramsAsync();
 
-            _monitorHelper.ActivarSoloMonitorPrincipal();
+                _progresoHelper.Paso("Cerrando las ventanas abiertas...");
+                await _ventanasHelper.CerrarTodasLasVentanasAsync();
 
-            await _joypadHelper.ReconectarMandoAsync();
-            await _steamHelper.IniciarSteamAsync();
+                _progresoHelper.Paso("Ajustando la pantalla...");
+                _monitorHelper.ActivarSoloMonitorPrincipal();
 
-            _serviciosDesactivados = await _serviceManager.DisableServicesAsync();
+                _progresoHelper.Paso("Reconectando el mando...");
+                await _joypadHelper.ReconectarMandoAsync();
 
-            _logger.LogInformation("Modo juegos iniciado completamente en {Elapsed:0.0}s.", sw.Elapsed.TotalSeconds);
+                _progresoHelper.Paso("Iniciando Steam...");
+                await _steamHelper.IniciarSteamAsync();
+
+                _progresoHelper.Paso("Desactivando los servicios innecesarios...");
+                _serviciosDesactivados = await _serviceManager.DisableServicesAsync();
+
+                _progresoHelper.Paso("Esperando a que Steam esté listo...");
+                var steamListo = await _steamHelper.EsperarVentanaAsync();
+
+                _logger.LogInformation("Modo juegos iniciado completamente en {Elapsed:0.0}s.", sw.Elapsed.TotalSeconds);
+
+                await _progresoHelper.CompletarAsync(steamListo
+                    ? "Todo listo. ¡A jugar!"
+                    : "Listo, pero Steam está tardando más de lo normal.");
+            }
+            finally
+            {
+                // Pase lo que pase, la ventana no puede quedarse encima de Steam.
+                _progresoHelper.Cerrar();
+            }
         }
 
         internal async Task DetenerModoJuegosAsync()
         {
             var sw = Stopwatch.StartNew();
+
+            // Por si se detiene el modo juegos mientras todavía se estaba iniciando.
+            _progresoHelper.Cerrar();
 
             await Task.WhenAll(
                 _steamHelper.CerrarSteamAsync(),

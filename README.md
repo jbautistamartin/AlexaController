@@ -11,7 +11,7 @@ Permite controlar un PC de forma remota usando la voz o botones en el móvil:
 - Apagar y reiniciar el equipo
 - Iniciar, cerrar y reiniciar Steam
 - Cerrar RetroArch
-- Activar y desactivar el **modo juegos** — cierra las ventanas abiertas, cambia a monitor único, detiene procesos y servicios en segundo plano, inicia Steam en Big Picture
+- Activar y desactivar el **modo juegos** — cierra las ventanas abiertas, cambia a monitor único, detiene procesos y servicios en segundo plano, inicia Steam en Big Picture, con una ventana que muestra el avance hasta que Steam está listo
 - Subir, bajar y silenciar el volumen
 - Reconectar el mando
 - Ver y borrar el **log del servidor** desde el móvil
@@ -44,6 +44,7 @@ AlexaController/          API ASP.NET Core (.NET 10, Windows)
   Controllers/            Endpoints /alexa/{accion} y /log/...
   Helpers/                Lógica de cada acción (Steam, volumen, monitor...)
   Gestores/               Estado del modo juegos (procesos, servicios, monitor)
+  UI/                     Ventana de progreso del modo juegos (WinForms)
   Seguridad/              Autenticación básica
 AlexaControllerSkill/     Modelo de interacción del skill de Alexa
 GameController/           Aplicación Android (Kotlin, Material Design 3)
@@ -79,13 +80,15 @@ docs/                     Documentación técnica
   "SteamPath": "C:\\Program Files (x86)\\Steam\\",
   "SteamBigPicture": true,
   "VentanasExcluidas": [],
+  "MostrarProgreso": true,
   "VolumenPasos": 3
 }
 ```
 
 `SteamBigPicture` arranca Steam con `-gamepadui`. `VentanasExcluidas` lista los procesos cuyas
 ventanas **no** se cierran al entrar en modo juegos (además del explorador de Windows, Steam,
-JoyToKey y la propia aplicación). El resto de claves están documentadas en
+JoyToKey y la propia aplicación). `MostrarProgreso` muestra la ventana con el avance del modo
+juegos, que desaparece en cuanto Steam está en pantalla. El resto de claves están documentadas en
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 Las credenciales deben coincidir con las configuradas en ngrok (`--basic-auth "usuario:contraseña"`).

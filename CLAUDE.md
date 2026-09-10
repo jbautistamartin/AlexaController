@@ -48,7 +48,8 @@ This is a voice-controlled PC automation system. An Alexa skill (in Spanish, inv
 - `JuegoActivoHelper` — finds the game Steam launched (process whose executable path matches `PatronesRutaJuegos` (`steamapps\common`, `C:\Games`), with a visible window and the most recent start time) to focus it (`EnfocarJuego`) or kill it and return focus to Steam (`DetenerJuego`); falls back to focusing Steam when no game is running
 - `MonitorHelper` — reads and switches Windows display topology (internal/clone/extend/external) via `QueryDisplayConfig` / `SetDisplayConfig` Win32 P/Invoke
 - `VolumeHelper` — raises/lowers/mutes system volume via Win32 `keybd_event` (VK_VOLUME_UP/DOWN/MUTE); step count from `VolumenPasos` in config (default: 3)
-- `JuegosHelper` — orchestrates "gaming mode": stops background apps (list from `Procesos`, paths saved so they can be relaunched), closes every remaining window, saves monitor topology and switches to single monitor, reconnects the gamepad, starts Steam, then disables Windows services (`Servicios`); reverses everything on stop. Killing the `Procesos` list must stay *before* closing windows so their paths are captured for the restore
+- `ProgresoHelper` + `UI/` — progress window for gaming mode. `UI/VentanaProgreso.cs` is a borderless WinForms window (current step, progress bar, last five log lines) living on its own STA thread with its own message loop, so it keeps repainting while the work blocks the calling thread; it is `TopMost` + `WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE` (never steals focus, stays out of Alt+Tab and out of the windows gaming mode closes). `UI/ProgresoSink.cs` is a Serilog sink that feeds the detail lines, so no helper needs its own progress reporting. Disabled with `MostrarProgreso: false`. Requires `<UseWindowsForms>true</UseWindowsForms>` in the csproj
+- `JuegosHelper` — orchestrates "gaming mode": stops background apps (list from `Procesos`, paths saved so they can be relaunched), closes every remaining window, saves monitor topology and switches to single monitor, reconnects the gamepad, starts Steam, then disables Windows services (`Servicios`) and finally waits for Steam's window (`SteamHelper.EsperarVentanaAsync`) so the progress window can close exactly when Steam is usable; reverses everything on stop. Killing the `Procesos` list must stay *before* closing windows so their paths are captured for the restore
 
 **`Gestores/`** — Managers used only by `JuegosHelper`:
 - `ProgramManager` — kills background apps and returns their paths so they can be restarted
@@ -69,6 +70,7 @@ This is a voice-controlled PC automation system. An Alexa skill (in Spanish, inv
 - `JoypadReiniciarConcentradorUsb` — also power-cycle the receiver's parent USB hub on reconnect (default: `true`; affects every device on that hub, but it is the only thing that forces a full descriptor re-read)
 - `VentanasExcluidas` — process names whose windows survive gaming mode (added to the built-in list)
 - `VentanasEsperaCierreMs` — grace period before unclosed windows get minimized (default: `5000`)
+- `MostrarProgreso` — show the gaming-mode progress window (default: `true`)
 - `VolumenPasos` — number of key presses per volume up/down command (default: `3`)
 - `PatronesRutaJuegos` — path fragments that identify a game executable (default: `steamapps\common`, `C:\Games`)
 - `ProcesosJuegoExcluidos` — extra process names never treated as the active game (added to the built-in list)

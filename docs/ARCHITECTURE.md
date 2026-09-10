@@ -125,10 +125,14 @@ AlexaController/
 │   ├── MonitorHelper.cs       QueryDisplayConfig / SetDisplayConfig (Win32)
 │   ├── VolumeHelper.cs        keybd_event VK_VOLUME_* (Win32)
 │   ├── JoypadHelper.cs        PowerShell / pnputil – reconexión del mando
+│   ├── ProgresoHelper.cs      ventana de progreso del modo juegos (hilo STA propio)
 │   └── JuegosHelper.cs        orquesta el modo juegos
 ├── Gestores/
 │   ├── ProgramManager.cs      mata procesos y guarda rutas para relanzarlos
 │   └── ServiceManager.cs      para / reactiva servicios de Windows
+├── UI/
+│   ├── VentanaProgreso.cs     ventana WinForms sin bordes (paso, barra y detalle)
+│   └── ProgresoSink.cs        sumidero Serilog que alimenta el detalle de la ventana
 ├── Seguridad/
 │   └── BasicAuthHandler.cs    AuthenticationHandler custom
 └── Program.cs                 DI, Serilog, Kestrel, Swagger (dev)
@@ -143,16 +147,42 @@ Al **iniciar**:
 4. Reconecta el mando
 5. Inicia Steam (en Big Picture)
 6. Detiene los servicios listados en `Servicios`
+7. Espera a que aparezca la ventana principal de Steam (`SteamHelper.EsperarVentanaAsync`)
 
 El orden importa: los procesos de la lista se matan **antes** de cerrar ventanas para poder
 guardar sus rutas y relanzarlos al salir; los servicios se detienen al final para no
 interferir con el arranque de Steam ni con la reinstalación PnP del mando.
+
+Cada paso se anuncia en la ventana de progreso (`ProgresoHelper`), que se cierra en cuanto
+Steam está en pantalla; el último paso existe precisamente para eso.
 
 Al **detener** (o al cerrar la aplicación):
 1. Cierra Steam
 2. Reactiva los servicios
 3. Relanza los procesos guardados
 4. Restaura la topología de monitores
+
+### Ventana de progreso (`ProgresoHelper` + `UI/`)
+
+El arranque completo ronda el minuto (la reconexión PnP del mando y el cierre de ventanas se
+llevan la mayor parte) y hasta que Steam aparece no hay ninguna señal en pantalla. Para
+evitar la sensación de bloqueo, `JuegosHelper` abre una ventana que muestra el paso actual
+(«Reconectando el mando…»), una barra de progreso y las últimas cinco líneas del registro.
+
+- Vive en un **hilo STA propio** con su bucle de mensajes (`Application.Run`), de modo que se
+  repinta aunque el trabajo bloquee al hilo que la maneja. Las actualizaciones se marshalan
+  con `BeginInvoke` y nunca propagan excepciones a la operación.
+- Es `WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE` y `TopMost`: se ve por encima de todo, no roba el
+  foco, no sale en el Alt+Tab y queda fuera de la lista de ventanas que el propio modo juegos
+  cierra (que además ya excluye a la propia aplicación).
+- El detalle no se instrumenta helper a helper: `UI/ProgresoSink.cs` es un sumidero de Serilog
+  que vuelca en la ventana las mismas trazas que van al archivo de log.
+- Se recentra al cambiar la topología de monitores (`SystemEvents.DisplaySettingsChanged`),
+  que es justo lo que hace el paso 3.
+- Se desactiva con `MostrarProgreso: false`.
+
+Requiere WinForms: el proyecto activa `<UseWindowsForms>true</UseWindowsForms>` sobre el SDK
+Web (posible porque el TFM es `net10.0-windows`).
 
 ### LogController
 
@@ -302,6 +332,7 @@ com.capicua.gamecontroller
   "JoypadReiniciarConcentradorUsb": true,
   "VentanasExcluidas": [],
   "VentanasEsperaCierreMs": 5000,
+  "MostrarProgreso": true,
   "VolumenPasos": 3,
   "Procesos": [ "GoogleDriveFS", "OneDrive", "Teams", ... ],
   "Servicios": [ "WSearch", "DiagTrack", ... ]
@@ -317,6 +348,7 @@ com.capicua.gamecontroller
 | `Servicios` | Servicios que se detienen en modo juegos. No debe incluir `wuauserv`: si el receptor del mando se reenumera con el modo juegos activo, Windows Update tiene que poder aportar el driver |
 | `VentanasExcluidas` | Procesos cuyas ventanas no se cierran al entrar en modo juegos. Se suman a la lista interna (explorador de Windows, Steam, JoyToKey y la propia aplicación) |
 | `VentanasEsperaCierreMs` | Espera máxima a que las ventanas se cierren; las que no lo hagan se minimizan |
+| `MostrarProgreso` | Muestra la ventana con el avance del modo juegos, que se cierra cuando Steam ya está en pantalla |
 
 ### Nota: el receptor F710 y el problema PnP 28
 

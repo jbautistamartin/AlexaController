@@ -28,6 +28,9 @@ namespace AlexaController.Helpers
         private readonly string _argumentos;
         private readonly bool _bigPicture;
 
+        // Se completa cuando aparece la ventana principal de Steam tras un arranque.
+        private TaskCompletionSource<bool>? _ventanaLista;
+
         public SteamHelper(
             ILogger<SteamHelper> logger,
             ProcesosHelper processHelper,
@@ -76,8 +79,15 @@ namespace AlexaController.Helpers
             }
 
             // Sin await: no bloquea el inicio del modo juegos
+            _ventanaLista = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             _ = Task.Run(ColocarSteamAlFrenteAsync);
         }
+
+        /// <summary>
+        /// Espera a que la ventana principal de Steam aparezca tras el último arranque.
+        /// Devuelve false si se agota la espera o si Steam no se ha iniciado desde aquí.
+        /// </summary>
+        public Task<bool> EsperarVentanaAsync() => _ventanaLista?.Task ?? Task.FromResult(false);
 
         /// <summary>
         /// Fuerza el modo Big Picture en una instancia de Steam que ya está arrancada.
@@ -112,11 +122,16 @@ namespace AlexaController.Helpers
                 if (hWnd == IntPtr.Zero)
                     continue;
 
+                // Steam ya es utilizable: quien estuviera esperando (la ventana de progreso)
+                // debe enterarse antes de que se le dé el foco.
+                _ventanaLista?.TrySetResult(true);
+
                 // Mantiene TOPMOST 8 segundos para superar diálogos tardíos, luego lo quita
                 await _ventanasHelper.TraerAlFrenteAsync(hWnd, "Steam", msTopmost: 8000);
                 return;
             }
 
+            _ventanaLista?.TrySetResult(false);
             _logger.LogWarning("No se encontró la ventana principal de Steam en 60 segundos.");
         }
 

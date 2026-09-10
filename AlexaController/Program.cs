@@ -19,6 +19,7 @@ using System.Reflection;
 using AlexaController.Gestores;
 using AlexaController.Helpers;
 using AlexaController.Seguridad;
+using AlexaController.UI;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -47,7 +48,9 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.Console(outputTemplate: LogTemplate)
     .WriteTo.Logger(lc => lc
         .Filter.ByIncludingOnly(Matching.FromSource("AlexaController"))
-        .WriteTo.File(logPath, outputTemplate: LogTemplate, shared: true))
+        .WriteTo.File(logPath, outputTemplate: LogTemplate, shared: true)
+        // Las mismas trazas alimentan el detalle de la ventana de progreso, si está abierta.
+        .WriteTo.Sink(new ProgresoSink()))
     .CreateLogger();
 builder.Host.UseSerilog();
 
@@ -71,6 +74,7 @@ builder.Services.AddSingleton<JuegoActivoHelper>();
 builder.Services.AddSingleton<VolumeHelper>();
 builder.Services.AddSingleton<JoypadHelper>();
 builder.Services.AddSingleton<MonitorHelper>();
+builder.Services.AddSingleton<ProgresoHelper>();
 builder.Services.AddSingleton<JuegosHelper>();
 
 if (builder.Environment.IsDevelopment())
