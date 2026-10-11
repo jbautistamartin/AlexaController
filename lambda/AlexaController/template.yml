@@ -13,7 +13,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ./src
-      Description: ''
+      Description: 'AlexaController 1.2.0 - manejador del skill de Alexa'
       MemorySize: 128
       Timeout: 3
       Handler: lambda_function.lambda_handler

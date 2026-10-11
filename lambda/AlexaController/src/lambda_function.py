@@ -20,6 +20,9 @@ import urllib.error
 import base64
 import os
 
+# Versión de este manejador, a la par que la API y la aplicación Android.
+VERSION = "1.2.0"
+
 # TODO: Configurar las siguientes variables de entorno en la consola de AWS Lambda
 #       (Configuración > Variables de entorno):
 #   - API_URL: URL pública del túnel ngrok (ej: https://xxxx.ngrok-free.app)
