@@ -39,6 +39,22 @@ function Paso($texto) { Write-Host "`n=== $texto ===" -ForegroundColor Cyan }
 function Aviso($texto) { Write-Host "  ! $texto" -ForegroundColor Yellow }
 function Bien($texto) { Write-Host "  + $texto" -ForegroundColor Green }
 
+# PowerShell 5.1 envuelve cada linea de stderr de un ejecutable nativo en un ErrorRecord y,
+# con ErrorActionPreference = Stop, aborta el script aunque el comando haya terminado bien.
+# git escribe por stderr el progreso del push, y gh el de la subida de artefactos: sin esto
+# el release se cae justo despues de etiquetar, con los binarios ya compilados. Lo unico que
+# dice si fue bien es el codigo de salida.
+function Ejecutar {
+    param([Parameter(Mandatory)][string]$Programa, [Parameter(ValueFromRemainingArguments)][string[]]$Argumentos)
+
+    $anterior = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try { & $Programa @Argumentos 2>&1 | ForEach-Object { Write-Host "  $_" } }
+    finally { $ErrorActionPreference = $anterior }
+
+    if ($LASTEXITCODE -ne 0) { throw "$Programa $($Argumentos -join ' ') fallo con codigo $LASTEXITCODE" }
+}
+
 # --------------------------------------------------------------------------------------
 # Version: el csproj manda, el resto tiene que coincidir
 # --------------------------------------------------------------------------------------
@@ -172,10 +188,8 @@ Paso "Publicando $tag en GitHub"
 $notas = Join-Path $raiz 'docs\NOTAS_RELEASE.md'
 if (-not (Test-Path $notas)) { throw "Faltan las notas del release: $notas" }
 
-git tag -a $tag -m "AlexaController $version"
-if ($LASTEXITCODE -ne 0) { throw "No se pudo crear el tag $tag" }
-git push origin $tag
-if ($LASTEXITCODE -ne 0) { throw "No se pudo subir el tag $tag" }
+Ejecutar git tag -a $tag -m "AlexaController $version"
+Ejecutar git push origin $tag
 
 $argumentos = @(
     'release', 'create', $tag,
@@ -185,8 +199,7 @@ $argumentos = @(
 if ($Borrador) { $argumentos += '--draft' }
 $argumentos += (Get-ChildItem $dist -File | ForEach-Object { $_.FullName })
 
-gh @argumentos
-if ($LASTEXITCODE -ne 0) { throw 'Fallo gh release create' }
+Ejecutar gh @argumentos
 
 Bien "release $tag publicado"
-gh release view $tag --json url --jq '.url'
+Ejecutar gh release view $tag --json url --jq '.url'
