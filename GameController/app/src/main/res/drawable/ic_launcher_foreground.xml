@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Gamepad icon centrado y escalado a 108dp -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M85.5,42H22.5c-4.97,0-9,4.03-9,9v18c0,4.97,4.03,9,9,9h63c4.97,0,9-4.03,9-9V51C94.5,46.03,90.47,42,85.5,42zM49.5,60.75h-9v9h-9v-9h-9v-9h9v-9h9v9h9V60.75zM76.5,69.75c-2.48,0-4.5-2.02-4.5-4.5s2.02-4.5,4.5-4.5s4.5,2.02,4.5,4.5S78.98,69.75,76.5,69.75zM85.5,60.75c-2.48,0-4.5-2.02-4.5-4.5s2.02-4.5,4.5-4.5s4.5,2.02,4.5,4.5S87.98,60.75,85.5,60.75z" />
+</vector>

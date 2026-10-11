@@ -1,0 +1,20 @@
+# Fin de línea: en el repositorio siempre LF; en el disco, lo que ponga cada
+# plataforma al hacer checkout. Sin esto, editar en Windows reescribe ficheros
+# enteros a CRLF y el diff deja de distinguirse del cambio real.
+* text=auto
+
+# Scripts que el intérprete exige con un final concreto, sea cual sea el sistema.
+*.cmd    text eol=crlf
+*.bat    text eol=crlf
+*.ps1    text eol=crlf
+*.sh     text eol=lf
+gradlew  text eol=lf
+
+# Binarios: no normalizar ni intentar fusionar.
+*.jar      binary
+*.jks      binary
+*.keystore binary
+*.apk      binary
+*.png      binary
+*.jpg      binary
+*.ico      binary
