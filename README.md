@@ -1,5 +1,7 @@
 # AlexaController
 
+[![Donar con PayPal](https://img.shields.io/badge/Donar-PayPal-00457C?logo=paypal&logoColor=white)](https://paypal.me/jbautistamartin)
+
 Sistema de automatización de PC mediante comandos de voz a través de un skill de Alexa en español, o desde la aplicación Android **GameController**.
 
 ---
@@ -148,6 +150,16 @@ La pantalla **Log** de la app Android muestra las entradas del log del servidor 
 - **Color por nivel**: rojo (ERR), naranja (WRN), azul (INF), gris (DBG)
 - Botón de **borrar** con confirmación — vacía el log en el servidor
 - Scroll automático a la entrada más reciente
+
+---
+
+## Apoyar el proyecto
+
+AlexaController y GameController son gratuitos y de código abierto. Si te resultan útiles, puedes invitarme a un café:
+
+[![Donar con PayPal](https://img.shields.io/badge/Donar-PayPal-00457C?logo=paypal&logoColor=white)](https://paypal.me/jbautistamartin)
+
+El enlace también está dentro de GameController, en la pestaña **Acerca de** («Invitar a un café»). Es completamente opcional: la aplicación no muestra avisos ni limita ninguna función.
 
 ---
 

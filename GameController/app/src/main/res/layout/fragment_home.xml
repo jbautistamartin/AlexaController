@@ -40,18 +40,18 @@
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_iniciar_modo_juegos"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
                         android:layout_marginEnd="4dp"
                         android:layout_weight="1"
-                        android:text="@string/accion_iniciar_modo_juegos" />
+                        android:text="@string/accion_iniciar_modo_juegos"
+                        style="@style/Widget.GameController.BotonAccion" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_detener_modo_juegos"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
                         android:layout_marginStart="4dp"
                         android:layout_weight="1"
-                        android:text="@string/accion_detener_modo_juegos" />
+                        android:text="@string/accion_detener_modo_juegos"
+                        style="@style/Widget.GameController.BotonAccion" />
 
                 </LinearLayout>
             </LinearLayout>
@@ -86,27 +86,27 @@
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_iniciar_steam"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
                         android:layout_marginEnd="4dp"
                         android:layout_weight="1"
-                        android:text="@string/accion_iniciar_steam" />
+                        android:text="@string/accion_iniciar_steam"
+                        style="@style/Widget.GameController.BotonAccion" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_cerrar_steam"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
                         android:layout_marginStart="4dp"
                         android:layout_marginEnd="4dp"
                         android:layout_weight="1"
-                        android:text="@string/accion_cerrar_steam" />
+                        android:text="@string/accion_cerrar_steam"
+                        style="@style/Widget.GameController.BotonAccion" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_reiniciar_steam"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
                         android:layout_marginStart="4dp"
                         android:layout_weight="1"
-                        android:text="@string/accion_reiniciar_steam" />
+                        android:text="@string/accion_reiniciar_steam"
+                        style="@style/Widget.GameController.BotonAccion" />
 
                 </LinearLayout>
             </LinearLayout>
@@ -141,68 +141,40 @@
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_cerrar_retroarch"
                         android:layout_width="0dp"
-                        android:layout_height="48dp"
                         android:layout_columnWeight="1"
                         android:layout_gravity="fill_horizontal"
                         android:layout_marginEnd="4dp"
                         android:layout_marginBottom="8dp"
-                        android:insetTop="0dp"
-                        android:insetBottom="0dp"
-                        android:paddingStart="4dp"
-                        android:paddingEnd="4dp"
-                        android:maxLines="1"
-                        android:ellipsize="end"
-                        android:textSize="12sp"
-                        android:text="@string/accion_cerrar_retroarch" />
+                        android:text="@string/accion_cerrar_retroarch"
+                        style="@style/Widget.GameController.BotonAccion" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_reconectar_mando"
                         android:layout_width="0dp"
-                        android:layout_height="48dp"
                         android:layout_columnWeight="1"
                         android:layout_gravity="fill_horizontal"
                         android:layout_marginStart="4dp"
                         android:layout_marginBottom="8dp"
-                        android:insetTop="0dp"
-                        android:insetBottom="0dp"
-                        android:paddingStart="4dp"
-                        android:paddingEnd="4dp"
-                        android:maxLines="1"
-                        android:ellipsize="end"
-                        android:textSize="12sp"
-                        android:text="@string/accion_reconectar_mando" />
+                        android:text="@string/accion_reconectar_mando"
+                        style="@style/Widget.GameController.BotonAccion" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_enfocar_juego"
                         android:layout_width="0dp"
-                        android:layout_height="48dp"
                         android:layout_columnWeight="1"
                         android:layout_gravity="fill_horizontal"
                         android:layout_marginEnd="4dp"
-                        android:insetTop="0dp"
-                        android:insetBottom="0dp"
-                        android:paddingStart="4dp"
-                        android:paddingEnd="4dp"
-                        android:maxLines="1"
-                        android:ellipsize="end"
-                        android:textSize="12sp"
-                        android:text="@string/accion_enfocar_juego" />
+                        android:text="@string/accion_enfocar_juego"
+                        style="@style/Widget.GameController.BotonAccion" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_detener_juego"
                         android:layout_width="0dp"
-                        android:layout_height="48dp"
                         android:layout_columnWeight="1"
                         android:layout_gravity="fill_horizontal"
                         android:layout_marginStart="4dp"
-                        android:insetTop="0dp"
-                        android:insetBottom="0dp"
-                        android:paddingStart="4dp"
-                        android:paddingEnd="4dp"
-                        android:maxLines="1"
-                        android:ellipsize="end"
-                        android:textSize="12sp"
-                        android:text="@string/accion_detener_juego" />
+                        android:text="@string/accion_detener_juego"
+                        style="@style/Widget.GameController.BotonAccion" />
 
                 </GridLayout>
             </LinearLayout>
@@ -237,27 +209,27 @@
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_subir_volumen"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
                         android:layout_marginEnd="4dp"
                         android:layout_weight="1"
-                        android:text="@string/accion_subir_volumen" />
+                        android:text="@string/accion_subir_volumen"
+                        style="@style/Widget.GameController.BotonAccion" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_bajar_volumen"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
                         android:layout_marginStart="4dp"
                         android:layout_marginEnd="4dp"
                         android:layout_weight="1"
-                        android:text="@string/accion_bajar_volumen" />
+                        android:text="@string/accion_bajar_volumen"
+                        style="@style/Widget.GameController.BotonAccion" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_silenciar"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
                         android:layout_marginStart="4dp"
                         android:layout_weight="1"
-                        android:text="@string/accion_silenciar" />
+                        android:text="@string/accion_silenciar"
+                        style="@style/Widget.GameController.BotonAccion" />
 
                 </LinearLayout>
             </LinearLayout>
@@ -292,18 +264,18 @@
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_apagar"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
                         android:layout_marginEnd="4dp"
                         android:layout_weight="1"
-                        android:text="@string/accion_apagar" />
+                        android:text="@string/accion_apagar"
+                        style="@style/Widget.GameController.BotonAccion" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_reiniciar_equipo"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
                         android:layout_marginStart="4dp"
                         android:layout_weight="1"
-                        android:text="@string/accion_reiniciar_equipo" />
+                        android:text="@string/accion_reiniciar_equipo"
+                        style="@style/Widget.GameController.BotonAccion" />
 
                 </LinearLayout>
             </LinearLayout>

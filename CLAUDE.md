@@ -13,6 +13,12 @@ dotnet run --project AlexaController
 
 # Build release
 dotnet build --configuration Release
+
+# GameController (the Android app) — signed release APK.
+# Signing keys live in GameController/local.properties (not versioned); the keystore itself is
+# outside the repo and shared with the other apps, so KEYSTORE_PATH is relative to the app/ module:
+# ../../../Claves/capicua.jks. See docs/ARCHITECTURE.md § 10.
+cd GameController && ./gradlew assembleRelease
 ```
 
 The app runs on `http://localhost:5780`. In production, it is exposed via a fixed ngrok tunnel (URL configured in `cmd/IniciarNGROK.cmd`) started by that same script. A Windows Task Scheduler task (`task/Iniciar AlexaController.xml`) auto-starts it on user logon.

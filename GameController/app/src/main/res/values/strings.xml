@@ -54,6 +54,15 @@
     <string name="settings_conexion_ok">Conexión correcta</string>
     <string name="settings_intervalo_log_label">Refresco del log (segundos)</string>
     <string name="settings_ir_al_log">Ir al log al ejecutar una acción</string>
+    <string name="settings_backup_titulo">Copia de seguridad</string>
+    <string name="settings_backup_aviso">El archivo JSON incluye la contraseña en texto plano: guárdalo en un sitio seguro.</string>
+    <string name="settings_exportar">Exportar</string>
+    <string name="settings_importar">Importar</string>
+    <string name="settings_backup_archivo">gamecontroller-config-%1$s.json</string>
+    <string name="settings_exportado">Configuración exportada</string>
+    <string name="settings_importado">Configuración importada y guardada</string>
+    <string name="settings_importar_confirmar">Se sustituirá la configuración actual por la del archivo. ¿Continuar?</string>
+    <string name="settings_error_archivo">Error: %1$s</string>
 
     <!-- Mensajes Home -->
     <string name="comando_enviado">Comando enviado</string>
@@ -73,5 +82,11 @@
     <string name="about_descripcion">Controla tu PC mediante botones o comandos de voz con Alexa.</string>
     <string name="about_proyecto_titulo">Proyecto</string>
     <string name="about_proyecto_detalle">AlexaController\nAPI de automatización de PC por voz</string>
+    <string name="about_responsabilidad_titulo">Uso bajo tu responsabilidad</string>
+    <string name="about_responsabilidad_detalle">Esta aplicación se entrega «tal cual», sin garantía de ningún tipo. Quien la instala, la configura y la pone en marcha es el único responsable del uso que haga de ella y de cumplir la legislación que le sea aplicable. Ni Capicua ni el autor, José Luis Bautista Martín, responden de ningún daño, pérdida de datos, apagado o reinicio inesperado del equipo, coste o incumplimiento derivado de su uso, de su mal uso o de la imposibilidad de usarla.</string>
+    <string name="about_donativo_titulo">Apoyar el proyecto</string>
+    <string name="about_donativo_detalle">Esta aplicación es gratuita, sin anuncios y de código abierto. Si te resulta útil, puedes invitarme a un café. Es completamente opcional: la aplicación no insiste ni limita ninguna función.</string>
+    <string name="about_donativo_boton">Invitar a un café</string>
+    <string name="about_donativo_sin_navegador">No hay ninguna aplicación en el dispositivo que pueda abrir el enlace.</string>
     <string name="about_licencia">Distribuido bajo licencia GNU LGPL v2.1\nCopyright © 2026 Capicua</string>
 </resources>

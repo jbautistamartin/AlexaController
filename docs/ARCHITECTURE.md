@@ -273,8 +273,29 @@ com.capicua.gamecontroller
     │   ├── SettingsFragment.kt    Formulario de configuración
     │   └── SettingsViewModel.kt   Guarda config; prueba conexión
     └── about/
-        └── AboutFragment.kt       Info de la app y licencia
+        └── AboutFragment.kt       Info de la app, licencia y enlace de donativo
 ```
+
+### Acerca de
+
+Además de la versión, la empresa y la licencia, la pestaña **Acerca de** ofrece el donativo: una
+tarjeta con el botón «Invitar a un café» que abre `https://paypal.me/jbautistamartin` en el
+navegador del teléfono (`URL_DONATIVO`, constante privada de `AboutFragment`). Es la única
+pantalla que lo menciona.
+
+La pestaña lleva además un **aviso de responsabilidad**: la aplicación se entrega «tal cual», y
+quien la instala y la configura es el único responsable de su uso. No es texto de relleno — esta
+aplicación apaga y reinicia un PC, cierra ventanas sin preguntar y detiene servicios de Windows.
+
+El corazón del botón (`drawable/ic_corazon.xml`) es el mismo trazo —cuatro curvas de Bézier— y el
+mismo dorado que dibuja SilentRunner en su menú de bandeja, para que el icono se reconozca igual en
+todas las aplicaciones de la casa. Lleva `app:iconTint="@null"`: tintarlo con el color del tema se
+llevaría por delante el dorado, que es lo único que lo identifica.
+
+El intent se lanza y se captura `ActivityNotFoundException` en lugar de preguntar antes al
+`PackageManager`: desde Android 11 la visibilidad de paquetes puede responder que no hay navegador
+cuando sí lo hay. Si de verdad no hay ninguno se avisa con un Snackbar, en lugar de dejar un botón
+que no hace nada. Es opcional de principio a fin: la aplicación no insiste ni limita nada.
 
 ### Configuración persistida (`AppConfig`)
 
@@ -403,6 +424,14 @@ cd GameController
 ```
 
 El APK queda en `GameController/app/build/outputs/apk/release/gamecontroller-<version>.apk`.
+
+La firma de release se lee de `GameController/local.properties`, que no se versiona:
+`KEYSTORE_PATH`, `KEYSTORE_PASSWORD`, `KEY_ALIAS` y `KEY_PASSWORD`. El almacén está **fuera del
+repositorio** y lo comparten las demás aplicaciones de la casa, así que la ruta se escribe relativa
+(`../../../Claves/capicua.jks`) y **resuelve desde el módulo `app/`**, que es donde la interpreta el
+`file()` de `app/build.gradle.kts`. Al ser una clave compartida, toda actualización futura tiene que
+firmarse con ese mismo almacén: si se pierde, la aplicación instalada ya no se puede actualizar,
+solo desinstalar y volver a instalar.
 
 ---
 
