@@ -406,6 +406,10 @@ en lugar de a un concentrador externo.
 
 1. La tarea programada `task/Iniciar AlexaController.xml` lanza la API al iniciar sesión en Windows
 2. El script `cmd/IniciarNGROK.cmd` abre el túnel ngrok con Basic Auth
+
+Ninguno de los dos se versiona: llevan credenciales. En el repositorio están sus plantillas,
+`cmd/IniciarNGROK.cmd.example` y `task/Iniciar AlexaController.xml.example`, que se copian sin
+el `.example` y se rellenan.
 3. La API usa un `Mutex` global para evitar instancias duplicadas
 
 ### Compilar para producción

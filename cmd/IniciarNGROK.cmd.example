@@ -1,0 +1,23 @@
+@echo off
+rem ---------------------------------------------------------------------------
+rem Abre el tunel ngrok que expone la API local a Alexa.
+rem
+rem Copiar este fichero como IniciarNGROK.cmd y rellenar las credenciales. El
+rem original no se versiona: lleva usuario, contrasena y el dominio reservado.
+rem
+rem El usuario y la contrasena tienen que ser LOS MISMOS en tres sitios o la
+rem cadena se rompe sin dar un error claro:
+rem   1. BasicAuth:Username / BasicAuth:Password de appsettings.json
+rem   2. el --basic-auth de aqui abajo
+rem   3. las variables API_USER / API_PASSWORD de la funcion Lambda
+rem ---------------------------------------------------------------------------
+
+set USUARIO=cambiame
+set CONTRASENA=cambiame
+
+rem --domain exige un dominio reservado en el panel de ngrok, pero es lo que
+rem permite que la URL no cambie en cada arranque: la Lambda la lleva fija en
+rem API_URL, y sin dominio reservado habria que reconfigurarla cada vez.
+set DOMINIO=cambiame.ngrok-free.app
+
+ngrok http 5780 --domain=%DOMINIO% --basic-auth "%USUARIO%:%CONTRASENA%"

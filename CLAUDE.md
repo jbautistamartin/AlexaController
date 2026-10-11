@@ -23,6 +23,8 @@ cd GameController && ./gradlew assembleRelease
 
 The app runs on `http://localhost:5780`. In production, it is exposed via a fixed ngrok tunnel (URL configured in `cmd/IniciarNGROK.cmd`) started by that same script. A Windows Task Scheduler task (`task/Iniciar AlexaController.xml`) auto-starts it on user logon.
 
+Both files carry credentials and are **not versioned** — only the templates are: `cmd/IniciarNGROK.cmd.example` and `task/Iniciar AlexaController.xml.example`. Copy them without the `.example` and fill in the placeholders.
+
 ## Architecture
 
 This is a voice-controlled PC automation system. An Alexa skill (in Spanish, invocation: "control de equipo") sends commands to an ASP.NET Core (.NET 10, `net10.0-windows`) API running locally.

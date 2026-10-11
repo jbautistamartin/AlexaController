@@ -111,7 +111,9 @@ En la consola de AWS Lambda, **Configuración → Variables de entorno**:
 ngrok http 5780 --basic-auth "usuario:contraseña"
 ```
 
-El script `cmd/IniciarNGROK.cmd` automatiza esto (no incluido por contener credenciales).
+El script `cmd/IniciarNGROK.cmd` automatiza esto. No se versiona porque lleva las
+credenciales y el dominio reservado: se parte de `cmd/IniciarNGROK.cmd.example`, se
+copia sin el `.example` y se rellenan los tres valores.
 
 ### 4. GameController (app Android)
 
@@ -137,7 +139,13 @@ dotnet build --configuration Release
 
 La API queda disponible en `http://localhost:5780`. El túnel ngrok la expone públicamente.
 
-En producción, una tarea del Programador de tareas de Windows (`task/Iniciar AlexaController.xml`) arranca la API automáticamente al iniciar sesión.
+En producción, una tarea del Programador de tareas de Windows arranca la API automáticamente
+al iniciar sesión. La plantilla es `task/Iniciar AlexaController.xml.example`: se copia sin el
+`.example`, se sustituyen el usuario de Windows y las rutas, y se importa con
+`schtasks /create /tn "Iniciar AlexaController" /xml "Iniciar AlexaController.xml"`.
+
+La tarea tiene que correr con **privilegios máximos**: el ejecutable declara
+`requireAdministrator`, porque sin elevación no se puede reinstalar el receptor del mando.
 
 ---
 

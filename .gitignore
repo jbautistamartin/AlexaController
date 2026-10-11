@@ -437,3 +437,12 @@ lambda/**/package/
 
 # Logs de la API (generados en tiempo de ejecución)
 AlexaController/logs/
+
+# Scripts de despliegue con credenciales: solo se versionan los .example.
+cmd/*.cmd
+task/*.xml
+!cmd/*.cmd.example
+!task/*.xml.example
+
+# Artefactos del release (los genera release.ps1).
+/dist/

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Tarea del Programador de tareas de Windows que arranca la API al iniciar sesion.
+
+  El fichero esta en UTF-8 y la declaracion lo dice: si no coinciden, schtasks
+  falla. El Programador de tareas los exporta en UTF-16; si tu version se queja,
+  guardalo como Unicode y cambia encoding a UTF-16.
+
+  Importar con:  schtasks /create /tn "Iniciar AlexaController" /xml "Iniciar AlexaController.xml"
+
+  Copiar este fichero sin el .example y sustituir:
+    - DOMINIO\USUARIO   por el usuario de Windows que inicia sesion
+    - las rutas de Command y WorkingDirectory por donde este instalado
+
+  Dos cosas que no son opcionales:
+    - RunLevel HighestAvailable: el ejecutable declara requireAdministrator en su
+      app.manifest, porque JoypadHelper no puede reinstalar el receptor del mando
+      sin elevacion. Sin esto la tarea arranca y el modo juegos falla a medias.
+    - WorkingDirectory: appsettings.json y la carpeta logs/ se resuelven relativos
+      al directorio de trabajo, no a la ubicacion del .exe.
+-->
+<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+  <RegistrationInfo>
+    <Description>Arranca la API de AlexaController al iniciar sesion.</Description>
+    <URI>\Iniciar AlexaController</URI>
+  </RegistrationInfo>
+  <Triggers>
+    <LogonTrigger>
+      <Enabled>true</Enabled>
+      <UserId>DOMINIO\USUARIO</UserId>
+    </LogonTrigger>
+  </Triggers>
+  <Principals>
+    <Principal id="Author">
+      <UserId>DOMINIO\USUARIO</UserId>
+      <LogonType>InteractiveToken</LogonType>
+      <RunLevel>HighestAvailable</RunLevel>
+    </Principal>
+  </Principals>
+  <Settings>
+    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
+    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
+    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
+    <AllowHardTerminate>true</AllowHardTerminate>
+    <StartWhenAvailable>false</StartWhenAvailable>
+    <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>
+    <IdleSettings>
+      <StopOnIdleEnd>false</StopOnIdleEnd>
+      <RestartOnIdle>false</RestartOnIdle>
+    </IdleSettings>
+    <AllowStartOnDemand>true</AllowStartOnDemand>
+    <Enabled>true</Enabled>
+    <Hidden>false</Hidden>
+    <RunOnlyIfIdle>false</RunOnlyIfIdle>
+    <WakeToRun>false</WakeToRun>
+    <ExecutionTimeLimit>PT0S</ExecutionTimeLimit>
+    <Priority>7</Priority>
+  </Settings>
+  <Actions Context="Author">
+    <Exec>
+      <Command>C:\AlexaController\AlexaController.exe</Command>
+      <WorkingDirectory>C:\AlexaController</WorkingDirectory>
+    </Exec>
+  </Actions>
+</Task>
