@@ -19,7 +19,16 @@ dotnet build --configuration Release
 # outside the repo and shared with the other apps, so KEYSTORE_PATH is relative to the app/ module:
 # ../../../Claves/capicua.jks. See docs/ARCHITECTURE.md § 10.
 cd GameController && ./gradlew assembleRelease
+
+# Full release: builds the API (self-contained, ReadyToRun), the signed APK and the Lambda
+# zip into dist/, then tags and publishes to GitHub Releases via gh. The csproj <Version>
+# is the single source of truth and the script aborts if the Android app disagrees.
+# See docs/ARCHITECTURE.md -> "Generar un release".
+./release.ps1 -SoloCompilar   # build only, no git/GitHub
+./release.ps1                 # tag + publish
 ```
+
+Published binaries: https://github.com/jbautistamartin/AlexaController/releases
 
 The app runs on `http://localhost:5780`. In production, it is exposed via a fixed ngrok tunnel (URL configured in `cmd/IniciarNGROK.cmd`) started by that same script. A Windows Task Scheduler task (`task/Iniciar AlexaController.xml`) auto-starts it on user logon.
 

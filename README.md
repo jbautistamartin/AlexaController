@@ -1,5 +1,7 @@
 # AlexaController
 
+[![Última versión](https://img.shields.io/github/v/release/jbautistamartin/AlexaController?label=descargar&color=2E7D32)](https://github.com/jbautistamartin/AlexaController/releases/latest)
+[![Licencia](https://img.shields.io/badge/licencia-LGPL--2.1-blue)](LICENSE)
 [![Donar con PayPal](https://img.shields.io/badge/Donar-PayPal-00457C?logo=paypal&logoColor=white)](https://paypal.me/jbautistamartin)
 
 Sistema de automatización de PC mediante comandos de voz a través de un skill de Alexa en español, o desde la aplicación Android **GameController**.
@@ -58,14 +60,45 @@ docs/                     Documentación técnica
 
 ---
 
+## Descargas
+
+Los binarios de cada versión están en la
+**[página de releases](https://github.com/jbautistamartin/AlexaController/releases/latest)**.
+
+| Artefacto | Qué es | Dónde va |
+|---|---|---|
+| `AlexaController-<version>-win-x64.zip` | API .NET, autocontenida | el PC que se controla |
+| `gamecontroller-<version>.apk` | Aplicación Android firmada | el móvil |
+| `lambda-alexacontroller-<version>.zip` | Manejador del skill | AWS Lambda (Python 3.13) |
+| `intents-<version>.json` | Modelo de interacción | Alexa Developer Console |
+
+La API va **autocontenida**: se descomprime y funciona, sin instalar ningún runtime de .NET.
+Las credenciales de `appsettings.json` vienen vacías a propósito y hay que rellenarlas — ver
+[Configuración](#configuración).
+
+> El ejecutable **pide elevación** (UAC). No es un descuido: sin privilegios de administrador
+> no se puede reinstalar el receptor del mando ni detener servicios de Windows, que es la mitad
+> del modo juegos.
+
+Las cuatro piezas se despliegan en cuatro sitios distintos y **el orden importa**: los pasos
+están en las [notas del release](https://github.com/jbautistamartin/AlexaController/releases/latest).
+
+---
+
 ## Requisitos
 
+Para **usar** los binarios del release:
+
 - Windows 10/11
-- .NET 10 SDK
 - Cuenta de AWS con una función Lambda configurada
 - Skill de Alexa publicado en Alexa Developer Console
 - [ngrok](https://ngrok.com/) con un túnel fijo
-- Android Studio (para compilar GameController)
+
+Para **compilar** desde el código:
+
+- .NET 10 SDK
+- JDK 21 y Android Studio (GameController)
+- [GitHub CLI](https://cli.github.com/) (`gh`), solo si se va a publicar un release
 
 ---
 
@@ -136,6 +169,15 @@ dotnet run --project AlexaController
 # Producción (compilar)
 dotnet build --configuration Release
 ```
+
+Los binarios tal como se publican en el release los genera `release.ps1`:
+
+```powershell
+.elease.ps1 -SoloCompilar   # compila las tres piezas y las deja en dist/
+.elease.ps1                 # además etiqueta y publica el release en GitHub
+```
+
+Detalles en [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md#generar-un-release).
 
 La API queda disponible en `http://localhost:5780`. El túnel ngrok la expone públicamente.
 

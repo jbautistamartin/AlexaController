@@ -406,11 +406,11 @@ en lugar de a un concentrador externo.
 
 1. La tarea programada `task/Iniciar AlexaController.xml` lanza la API al iniciar sesión en Windows
 2. El script `cmd/IniciarNGROK.cmd` abre el túnel ngrok con Basic Auth
+3. La API usa un `Mutex` global para evitar instancias duplicadas
 
-Ninguno de los dos se versiona: llevan credenciales. En el repositorio están sus plantillas,
+Los dos primeros no se versionan: llevan credenciales. En el repositorio están sus plantillas,
 `cmd/IniciarNGROK.cmd.example` y `task/Iniciar AlexaController.xml.example`, que se copian sin
 el `.example` y se rellenan.
-3. La API usa un `Mutex` global para evitar instancias duplicadas
 
 ### Compilar para producción
 
@@ -436,6 +436,42 @@ repositorio** y lo comparten las demás aplicaciones de la casa, así que la rut
 `file()` de `app/build.gradle.kts`. Al ser una clave compartida, toda actualización futura tiene que
 firmarse con ese mismo almacén: si se pierde, la aplicación instalada ya no se puede actualizar,
 solo desinstalar y volver a instalar.
+
+### Generar un release
+
+Los binarios publicados están en la [página de releases](https://github.com/jbautistamartin/AlexaController/releases),
+y los genera `release.ps1` desde la raíz del repositorio:
+
+```powershell
+.elease.ps1 -SoloCompilar   # compila y arma dist/ sin tocar git ni GitHub
+.elease.ps1                 # etiqueta, sube el tag y publica el release con gh
+.elease.ps1 -Borrador       # igual, pero como borrador para revisar las notas
+```
+
+| Artefacto | Qué es |
+|---|---|
+| `AlexaController-<version>-win-x64.zip` | API autocontenida (ejecutable único, ReadyToRun) |
+| `gamecontroller-<version>.apk` | Aplicación Android firmada |
+| `lambda-alexacontroller-<version>.zip` | Manejador del skill para AWS Lambda |
+| `intents-<version>.json` | Modelo de interacción de Alexa |
+
+La versión la manda el `<Version>` del `csproj`: el script la lee de ahí y **aborta si la
+aplicación Android declara otra**, porque un release cuyos artefactos no coinciden entre sí no
+hay forma de rastrearlo después. Las comprobaciones previas —árbol limpio, tag libre, `gh`
+autenticado, almacén de claves presente— van antes de compilar: fallar a los cinco minutos de
+build obliga a repetirlo todo.
+
+La API se publica **autocontenida**, así que quien la instala no necesita ningún runtime, y con
+**ReadyToRun**: abulta unos 6 MB más en el zip, pero precompila a nativo y el arranque deja de
+pagar el JIT. En una API que se lanza al iniciar sesión y recibe la primera orden por voz poco
+después, ese primer arranque es justo el que se nota.
+
+Las notas que acompañan al release se escriben en [`NOTAS_RELEASE.md`](NOTAS_RELEASE.md).
+
+> El script envuelve las llamadas a `git` y `gh` en una función que decide por el código de
+> salida. PowerShell 5.1 convierte cada línea de stderr de un ejecutable nativo en un
+> `ErrorRecord` y, con `$ErrorActionPreference = 'Stop'`, aborta el script aunque el comando
+> haya ido bien — y tanto `git push` como `gh` escriben su progreso por stderr.
 
 ---
 
