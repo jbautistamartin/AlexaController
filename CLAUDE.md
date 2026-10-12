@@ -26,6 +26,13 @@ cd GameController && ./gradlew assembleRelease
 # See docs/ARCHITECTURE.md -> "Generar un release".
 ./release.ps1 -SoloCompilar   # build only, no git/GitHub
 ./release.ps1                 # tag + publish
+
+# Before running it: bump <Version> in the csproj and versionName/versionCode in
+# GameController/app/build.gradle.kts, move what is under [No publicado] in CHANGELOG.md to the
+# new version, and rewrite docs/NOTAS_RELEASE.md — release.ps1 aborts if that file is missing,
+# because it is what it hands to `gh release --notes-file`.
+# CHANGELOG.md summarises what changed; NOTAS_RELEASE.md is the long announcement (artefacts and
+# the order they have to be installed in).
 ```
 
 Published binaries: https://github.com/jbautistamartin/AlexaController/releases
@@ -72,6 +79,17 @@ This is a voice-controlled PC automation system. An Alexa skill (in Spanish, inv
 - `ProgramManager` — kills background apps and returns their paths so they can be restarted
 - `ServiceManager` — stops Windows services and returns their names so they can be re-enabled
 
+**`Helpers/ActualizacionHelper.cs`** — `BackgroundService` that asks GitHub for the latest release
+30 seconds after startup and every 24 hours after that, and logs a warning when the published
+version beats the assembly's. **It only warns.** The notice goes out through the log on purpose:
+GameController ships a live viewer of the server log, so one line here is visible from the phone
+with nothing else to build. Turned off with `"Actualizaciones": { "Comprobar": false }`. It does
+not download or install anything — this service runs elevated, with Steam in Big Picture and
+Windows services stopped by gaming mode, and replacing itself in that state is how you leave a PC
+half-configured. Versions are compared as numbers, never as strings (`"1.10.0" < "1.9.0"` as text).
+GameController has its own check, with its own card in «Acerca de» — see
+`docs/ARCHITECTURE.md` → «Acerca de».
+
 **`Seguridad/BasicAuthHandler.cs`** — Custom `AuthenticationHandler` that validates Base64 credentials from the `Authorization` header against `BasicAuth:Username` / `BasicAuth:Password` in `appsettings.json`.
 
 ## Configuration
@@ -93,6 +111,7 @@ This is a voice-controlled PC automation system. An Alexa skill (in Spanish, inv
 - `ProcesosJuegoExcluidos` — extra process names never treated as the active game (added to the built-in list)
 - `Procesos` — JSON array of process names to kill when entering gaming mode
 - `Servicios` — JSON array of Windows service names to stop/disable when entering gaming mode. Must not include `wuauserv`: if the receiver re-enumerates while gaming mode is on, Windows Update has to be able to supply the driver
+- `Actualizaciones:Comprobar` — ask GitHub once a day whether a newer release is published and say so in the log (default: `true`). Only warns; never downloads or installs
 
 All DI registrations are in `Program.cs` (all Singletons). Serilog writes to console + daily rolling file at `logs/AlexaController.log`.
 

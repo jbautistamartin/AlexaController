@@ -6,6 +6,12 @@
 
 Sistema de automatización de PC mediante comandos de voz a través de un skill de Alexa en español, o desde la aplicación Android **GameController**.
 
+**Versión actual: [v1.3.0](https://github.com/jbautistamartin/AlexaController/releases/tag/v1.3.0)** —
+en la [página de releases](https://github.com/jbautistamartin/AlexaController/releases) están los
+cuatro artefactos que hacen falta: la API autocontenida para el PC, el APK firmado de
+GameController, el zip de la función Lambda y el modelo de interacción del skill. Lo que cambia en
+cada versión está en [`CHANGELOG.md`](CHANGELOG.md).
+
 ---
 
 ## ¿Qué hace?
@@ -19,6 +25,8 @@ Permite controlar un PC de forma remota usando la voz o botones en el móvil:
 - Subir, bajar y silenciar el volumen
 - Reconectar el mando
 - Ver y borrar el **log del servidor** desde el móvil
+- Avisar de que hay una **versión nueva publicada**: el servicio lo escribe en su log y la
+  aplicación lo marca en **Acerca de**, desde donde se descarga e instala el APK
 
 ---
 

@@ -4,6 +4,11 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+    <!-- Abrir el instalador del sistema con el APK de una versión nueva. No instala en
+         silencio: Android enseña su diálogo igual, y desde Android 8 hay que autorizar a esta
+         aplicación en los ajustes. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
     <application
         android:name=".GameControllerApplication"
         android:allowBackup="false"
