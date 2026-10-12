@@ -273,7 +273,7 @@ com.capicua.gamecontroller
     │   ├── SettingsFragment.kt    Formulario de configuración
     │   └── SettingsViewModel.kt   Guarda config; prueba conexión
     └── about/
-        └── AboutFragment.kt       Info de la app, licencia y enlace de donativo
+        └── AboutFragment.kt       Info de la app, licencia, proyecto y donativo
 ```
 
 ### Acerca de
@@ -282,6 +282,42 @@ Además de la versión, la empresa y la licencia, la pestaña **Acerca de** ofre
 tarjeta con el botón «Invitar a un café» que abre `https://paypal.me/jbautistamartin` en el
 navegador del teléfono (`URL_DONATIVO`, constante privada de `AboutFragment`). Es la única
 pantalla que lo menciona.
+
+La pestaña lleva además una tarjeta **Actualizaciones**: el mando pregunta a GitHub una vez al día
+si hay publicado un release más reciente y, cuando lo hay, marca con un punto esa pestaña en la
+barra inferior. Desde la tarjeta se descarga e instala el APK —lo baja el gestor de descargas del
+sistema y la instalación la confirma Android, que es lo único que puede hacerlo: instalar en
+silencio exige ser dueño del dispositivo—, se puede buscar a mano y se puede apagar la
+comprobación automática. Las versiones se comparan **como números** (`data/update/VersionPublicada`,
+con pruebas unitarias, las primeras del mando) porque como texto «1.10.0» va antes que «1.9.0»; se
+pregunta una vez al día y con `If-None-Match` para no gastar el límite de 60 peticiones por hora de
+la API pública; un 404 significa que aún no hay releases, no un error; y el aviso recuerda que el
+release publica las cuatro piezas juntas, así que si el mando tiene versión nueva, el servicio del
+PC también.
+
+**Lo encontrado se guarda, no solo la fecha de la pregunta.** El release hallado —etiqueta, página
+y APK— se queda en el DataStore y la comprobación lo devuelve desde ahí mientras siga siendo más
+nuevo que lo instalado. Sin eso, el punto de la pestaña salía en la primera apertura del día y
+desaparecía en la segunda, porque el límite diario contestaba «no tocaba preguntar» y nadie
+recordaba el hallazgo. Es además la respuesta correcta a un **304** (que el último release no haya
+cambiado no significa que sea el instalado) y se borra solo: al instalar la actualización, la
+comparación deja de cumplirse.
+
+**El servicio del PC también lo avisa, por el log.** `Helpers/ActualizacionHelper.cs` es un
+`BackgroundService` que pregunta 30 segundos después de arrancar y luego cada 24 horas, y escribe
+una línea de advertencia cuando hay versión nueva. Sale por el log precisamente porque el mando
+trae un visor del log del servidor en tiempo real: así se ve desde el móvil sin montar nada más.
+Solo avisa —no descarga ni instala— y se apaga con `"Actualizaciones": { "Comprobar": false }` en
+`appsettings.json`: reemplazarse a sí mismo mientras tiene Steam en Big Picture y servicios de
+Windows detenidos por el modo juegos es la clase de automatismo que deja el equipo a medias.
+
+La tarjeta **Proyecto**, que ya nombraba la solución, lleva ahora su enlace: un botón de texto
+«Ver el proyecto en GitHub» que abre `https://github.com/jbautistamartin/AlexaController`
+(`URL_PROYECTO`, al lado del anterior). Va dentro de esa tarjeta y no en una nueva porque es la
+misma cosa que ya se estaba nombrando, solo que se puede abrir — y apunta a la **solución
+completa**, no a la aplicación de Android: el servicio de Windows, la skill y el lanzador se
+publican ahí mismo. Los dos enlaces salen por el mismo `abrirEnlace(url)`, que avisa con un
+Snackbar si el teléfono no tiene con qué abrirlos.
 
 La pestaña lleva además un **aviso de responsabilidad**: la aplicación se entrega «tal cual», y
 quien la instala y la configura es el único responsable de su uso. No es texto de relleno — esta
@@ -440,7 +476,14 @@ solo desinstalar y volver a instalar.
 ### Generar un release
 
 Los binarios publicados están en la [página de releases](https://github.com/jbautistamartin/AlexaController/releases),
-y los genera `release.ps1` desde la raíz del repositorio:
+y los genera `release.ps1` desde la raíz del repositorio.
+
+Antes de lanzarlo hay que subir la versión (el `<Version>` del csproj y el `versionName` /
+`versionCode` de `GameController/app/build.gradle.kts`), **pasar a la versión nueva lo que esté
+bajo `[No publicado]` en [`CHANGELOG.md`](../CHANGELOG.md)** y reescribir `docs/NOTAS_RELEASE.md`:
+el script aborta si ese fichero no existe, porque es lo que entrega a `gh release --notes-file`.
+El registro de cambios resume *qué* cambió; las notas del release cuentan los artefactos y en qué
+orden se instalan.
 
 ```powershell
 .elease.ps1 -SoloCompilar   # compila y arma dist/ sin tocar git ni GitHub

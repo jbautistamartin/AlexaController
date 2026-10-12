@@ -77,6 +77,9 @@ builder.Services.AddSingleton<MonitorHelper>();
 builder.Services.AddSingleton<ProgresoHelper>();
 builder.Services.AddSingleton<JuegosHelper>();
 
+// Avisa por el log si hay publicada una versión más nueva. Solo avisa: ver ActualizacionHelper.
+builder.Services.AddHostedService<ActualizacionHelper>();
+
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddEndpointsApiExplorer();

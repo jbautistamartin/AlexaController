@@ -8,14 +8,27 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.viewpager2.widget.ViewPager2
+import androidx.lifecycle.lifecycleScope
+import com.capicua.gamecontroller.data.update.ComprobadorDeActualizaciones
+import com.capicua.gamecontroller.data.update.ResultadoActualizacion
 import com.capicua.gamecontroller.databinding.ActivityMainBinding
 import com.capicua.gamecontroller.presentation.PaginasAdapter
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import timber.log.Timber
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+
+    /**
+     * El comprobador de versiones. Se pregunta aquí, y no solo desde «Acerca de», para que
+     * enterarse de que hay una versión nueva no dependa de abrir esa pestaña.
+     */
+    @Inject
+    lateinit var comprobadorDeActualizaciones: ComprobadorDeActualizaciones
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,6 +37,26 @@ class MainActivity : AppCompatActivity() {
 
         configurarInsets()
         configurarPaginas()
+        comprobarSiHayVersionNueva()
+    }
+
+    /**
+     * Pregunta —una vez al día como mucho, y solo si el aviso está encendido— si hay publicada
+     * una versión más nueva, y lo marca con un punto en la pestaña de «Acerca de», que es donde
+     * está la tarjeta que lo explica.
+     *
+     * Un punto y nada más: el mando se abre para dar una orden al PC, y un diálogo encima al
+     * arrancar estorbaría justo a eso. Sin red —el móvil puede estar fuera de casa— no se dice
+     * nada.
+     */
+    private fun comprobarSiHayVersionNueva() {
+        lifecycleScope.launch {
+            val resultado = comprobadorDeActualizaciones.comprobar(forzar = false)
+            if (resultado !is ResultadoActualizacion.Disponible) return@launch
+
+            Timber.i("Versión nueva publicada: ${resultado.etiqueta}")
+            binding.bottomNavigation.getOrCreateBadge(R.id.aboutFragment)
+        }
     }
 
     /**

@@ -100,6 +100,93 @@
                     android:textAppearance="@style/TextAppearance.Material3.BodySmall"
                     android:fontFamily="monospace" />
 
+                <!-- El enlace a la página del proyecto. Va dentro de esta tarjeta y no en una
+                     nueva: es la misma cosa que ya se está nombrando, solo que se puede abrir. -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_proyecto"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/about_proyecto_boton"
+                    android:layout_marginTop="8dp"
+                    app:icon="@drawable/ic_info"
+                    app:iconGravity="textStart"
+                    app:iconSize="18dp" />
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Actualizaciones. Lo comprueba la aplicación sola una vez al día y aquí se ve el
+             resultado; en la barra inferior aparece un punto sobre esta pestaña. El release
+             publica las cuatro piezas de la solución a la vez, así que si el mando tiene
+             versión nueva, el servidor del PC también. -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            app:cardElevation="0dp"
+            app:strokeColor="?attr/colorOutline"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/about_actualizacion_titulo"
+                    android:textAppearance="@style/TextAppearance.Material3.TitleSmall"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:id="@+id/text_actualizacion_estado"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                    android:layout_marginBottom="12dp" />
+
+                <com.google.android.material.progressindicator.LinearProgressIndicator
+                    android:id="@+id/progress_actualizacion"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:visibility="gone" />
+
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/switch_actualizacion_avisos"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/about_actualizacion_avisos"
+                    android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                    android:layout_marginBottom="8dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_instalar_actualizacion"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/about_actualizacion_instalar"
+                    android:layout_marginBottom="4dp"
+                    android:visibility="gone" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_notas_actualizacion"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/about_actualizacion_notas"
+                    android:visibility="gone" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_buscar_actualizacion"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/about_actualizacion_buscar" />
+
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
